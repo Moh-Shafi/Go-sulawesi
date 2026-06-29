@@ -88,7 +88,7 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 
 ---
 
-## 🧰 Tech Stack — Full Detail
+## Tech Stack — Full Detail
 
 ### Frontend
 | Technology | Version | Usage |
@@ -101,7 +101,7 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 | **Custom Hooks** | — | `useLang` for EN/ID language switching |
 | **localStorage API** | — | Token, user session, preferences, saved places |
 
-### 🟠 Backend
+### Backend
 | Technology | Version | Usage |
 |---|---|---|
 | **PHP** | 8.3 | REST API with PDO and prepared statements |
