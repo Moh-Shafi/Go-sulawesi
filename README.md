@@ -20,28 +20,28 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 
 ---
 
-## 🖥️ Screenshots — Desktop
+## Screenshots — Desktop
 
 <table>
   <tr>
-    <td align="center"><b>🏠 Landing Page — Hero</b></td>
-    <td align="center"><b>💬 Traveler Stories</b></td>
+    <td align="center"><b>Landing Page — Hero</b></td>
+    <td align="center"><b>Traveler Stories</b></td>
   </tr>
   <tr>
     <td><img src="./Foto/1-pc.png" alt="Landing Page" /></td>
     <td><img src="./Foto/2-pc.png" alt="Testimonials" /></td>
   </tr>
   <tr>
-    <td align="center"><b>📝 Sign Up — Dual Role</b></td>
-    <td align="center"><b>🛡️ Admin Dashboard</b></td>
+    <td align="center"><b>Sign Up — Dual Role</b></td>
+    <td align="center"><b>Admin Dashboard</b></td>
   </tr>
   <tr>
     <td><img src="./Foto/3-pc.png" alt="Sign Up" /></td>
     <td><img src="./Foto/4-pc.png" alt="Admin Dashboard" /></td>
   </tr>
   <tr>
-    <td align="center"><b>🌿 Tourist Dashboard</b></td>
-    <td align="center"><b>🏪 Business Dashboard</b></td>
+    <td align="center"><b>Tourist Dashboard</b></td>
+    <td align="center"><b>Business Dashboard</b></td>
   </tr>
   <tr>
     <td><img src="./Foto/5-pc.png" alt="Tourist Dashboard" /></td>
@@ -51,7 +51,7 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 
 ---
 
-## 📱 Screenshots — Mobile
+## Screenshots — Mobile
 
 <p align="center">
   <img src="./Foto/1-app.png" width="18%" alt="Landing Mobile" />
@@ -70,27 +70,27 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 
 ---
 
-## 📐 Architecture Overview
+## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     GoSulawesi Platform                      │
-├──────────────────────┬──────────────────────────────────────┤
-│   Frontend (Vite)    │         Backend (PHP + MySQL)        │
-│   localhost:5173     │           localhost:8082             │
-│                      │                                      │
-│  React 19 + TS 6     │   RESTful API (PHP 8.3 + Apache)    │
-│  Tailwind CSS 4      │   MySQL 8.0 Database                 │
-│  React Router 7      │   JWT-like Auth Tokens               │
-│  Custom Hooks        │   Docker Compose                     │
-└──────────────────────┴──────────────────────────────────────┘
+
+                     GoSulawesi Platform                      
+
+   Frontend (Vite)             Backend (PHP + MySQL)        
+   localhost:5173                localhost:8082             
+                                                            
+  React 19 + TS 6        RESTful API (PHP 8.3 + Apache)    
+  Tailwind CSS 4         MySQL 8.0 Database                 
+  React Router 7         JWT-like Auth Tokens               
+  Custom Hooks           Docker Compose                     
+
 ```
 
 ---
 
 ## 🧰 Tech Stack — Full Detail
 
-### 🔵 Frontend
+### Frontend
 | Technology | Version | Usage |
 |---|---|---|
 | **React** | 19 | UI framework with functional components & hooks |
@@ -110,7 +110,7 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 | **PDO** | — | Secure parameterized queries |
 | **Custom JWT** | — | HMAC-SHA256 token auth (7-day expiry) |
 
-### 🐳 Infrastructure
+### Infrastructure
 | Technology | Usage |
 |---|---|
 | **Docker Compose** | Orchestrates PHP, MySQL, phpMyAdmin containers |
@@ -119,72 +119,72 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 Go-sulawesi/
-├── 📁 backend/
-│   ├── api/
-│   │   ├── auth/          → login · register · me
-│   │   ├── bookings/      → CRUD bookings
-│   │   ├── businesses/    → CRUD local businesses
-│   │   ├── dashboard/     → platform stats
-│   │   ├── destinations/  → CRUD destinations
-│   │   ├── reviews/       → reviews & ratings
-│   │   ├── users/         → CRUD users + avatar upload
-│   │   └── stats.php      → public stats (live counters)
-│   ├── config.php         → DB config, CORS, auth helpers
-│   ├── database/
-│   │   ├── init.sql       → schema + seed destinations
-│   │   └── seed_*.php     → extended seed data
-│   └── Dockerfile
-│
-├── 📁 src/
-│   ├── components/
-│   │   ├── TouristLayout.tsx     → tourist sidebar + top bar
-│   │   ├── BusinessLayout.tsx    → business sidebar + top bar
-│   │   ├── AdminLayout.tsx       → admin sidebar + top bar
-│   │   ├── TouristBottomNav.tsx  → mobile nav (tourist)
-│   │   └── BusinessBottomNav.tsx → mobile nav (business)
-│   │
-│   ├── pages/
-│   │   ├── LandingPage.tsx / LandingPageV2.tsx
-│   │   ├── LoginPage.tsx / SignUpPage.tsx
-│   │   ├── OnboardingQuiz.tsx         → travel preference quiz
-│   │   ├── TouristDashboard.tsx       → explore + bookings
-│   │   ├── ItineraryBuilder.tsx       → multi-day trip planner
-│   │   ├── DestinationDetailPage.tsx
-│   │   ├── BusinessDashboard.tsx      → earnings + listings
-│   │   ├── BusinessListingsPage.tsx
-│   │   ├── BusinessBookingsPage.tsx
-│   │   ├── BusinessEarningsPage.tsx
-│   │   ├── BusinessReviewsPage.tsx
-│   │   ├── BusinessSettingsPage.tsx
-│   │   └── AdminDashboard.tsx
-│   │
-│   ├── hooks/
-│   │   └── useLang.ts    → EN / ID language state
-│   │
-│   ├── lib/
-│   │   ├── api.ts        → all REST API calls with auth
-│   │   └── saved.ts      → localStorage saved destinations
-│   │
-│   └── App.tsx           → all routes + role-based guards
-│
-├── 📁 public/
-│   ├── logo/             → logo-64/128/256.png (transparent)
-│   ├── img/              → destination images
-│   └── avatar/           → user avatar images
-│
-├── 📁 Foto/              → app screenshots (desktop + mobile)
-├── docker-compose.yml
-├── package.json
-└── vite.config.ts
+  backend/
+    api/
+       auth/          → login · register · me
+       bookings/      → CRUD bookings
+       businesses/    → CRUD local businesses
+       dashboard/     → platform stats
+       destinations/  → CRUD destinations
+       reviews/       → reviews & ratings
+       users/         → CRUD users + avatar upload
+       stats.php      → public stats (live counters)
+    config.php         → DB config, CORS, auth helpers
+    database/
+       init.sql       → schema + seed destinations
+       seed_*.php     → extended seed data
+    Dockerfile
+
+  src/
+    components/
+       TouristLayout.tsx     → tourist sidebar + top bar
+       BusinessLayout.tsx    → business sidebar + top bar
+       AdminLayout.tsx       → admin sidebar + top bar
+       TouristBottomNav.tsx  → mobile nav (tourist)
+       BusinessBottomNav.tsx → mobile nav (business)
+   
+    pages/
+       LandingPage.tsx / LandingPageV2.tsx
+       LoginPage.tsx / SignUpPage.tsx
+       OnboardingQuiz.tsx         → travel preference quiz
+       TouristDashboard.tsx       → explore + bookings
+       ItineraryBuilder.tsx       → multi-day trip planner
+       DestinationDetailPage.tsx
+       BusinessDashboard.tsx      → earnings + listings
+       BusinessListingsPage.tsx
+       BusinessBookingsPage.tsx
+       BusinessEarningsPage.tsx
+       BusinessReviewsPage.tsx
+       BusinessSettingsPage.tsx
+       AdminDashboard.tsx
+   
+    hooks/
+       useLang.ts    → EN / ID language state
+   
+    lib/
+       api.ts        → all REST API calls with auth
+       saved.ts      → localStorage saved destinations
+   
+    App.tsx           → all routes + role-based guards
+
+  public/
+    logo/             → logo-64/128/256.png (transparent)
+    img/              → destination images
+    avatar/           → user avatar images
+
+  Foto/              → app screenshots (desktop + mobile)
+ docker-compose.yml
+ package.json
+ vite.config.ts
 ```
 
 ---
 
-## 🗃️ Database Schema
+## Database Schema
 
 ```sql
 users        → id · name · email · password · role · avatar
@@ -200,7 +200,7 @@ reviews      → id · user_id · destination_id · business_id · rating · com
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
@@ -225,17 +225,17 @@ App runs at → **http://localhost:5173**
 
 ---
 
-## 🔑 Demo Accounts
+## Demo Accounts
 
 | Role | Email | Password |
 |---|---|---|
-| 🛡️ Admin | `admin@gosulawesi.id` | `admin123` |
-| 🌍 Tourist | `tourist@gosulawesi.id` | `tourist123` |
-| 🏪 Local Business | `local@gosulawesi.id` | `local123` |
+|  Admin | `admin@gosulawesi.id` | `admin123` |
+|  Tourist | `tourist@gosulawesi.id` | `tourist123` |
+|  Local Business | `local@gosulawesi.id` | `local123` |
 
 ---
 
-## 🌐 API Endpoints
+## API Endpoints
 
 ```
 POST   /api/auth/login
@@ -269,9 +269,9 @@ GET    /api/dashboard           [admin]
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🌍 For Tourists
+### For Tourists
 - Personalized destination recommendations via **onboarding quiz**
 - Filter by category: Nature · Culture · Adventure · Village · Coastal
 - **Itinerary Builder** — plan multi-day trips with price estimation
@@ -280,14 +280,14 @@ GET    /api/dashboard           [admin]
 - Leave reviews and ratings
 - Bilingual UI (English / Bahasa Indonesia)
 
-### 🏪 For Local Businesses
+### For Local Businesses
 - Create and manage business listings
 - Real-time booking dashboard with revenue charts
 - Manage incoming bookings (confirm / complete / cancel)
 - View and respond to customer reviews
 - Weekly earnings analytics
 
-### 🛡️ For Admins
+### For Admins
 - Full platform overview (users · bookings · destinations)
 - Approve or reject pending businesses
 - Manage all users, listings, and bookings
@@ -295,7 +295,7 @@ GET    /api/dashboard           [admin]
 
 ---
 
-## 📦 Build for Production
+## Build for Production
 
 ```bash
 npm run build
@@ -306,7 +306,7 @@ Output → `dist/` (static files, ready for deployment)
 
 <div align="center">
 
-Made with ❤️ for South Sulawesi, Indonesia
+Made with  for South Sulawesi, Indonesia
 
 **GoSulawesi** · *Hidden Experiences*
 
