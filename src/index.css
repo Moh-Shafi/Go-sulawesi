@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+* {
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dde1ea;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b8bfcc;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #dde1ea transparent;
+}

@@ -1,0 +1,21 @@
+RewriteEngine On
+
+# Pass Authorization header to PHP and route /api/* to PHP files
+RewriteRule ^api/auth/login$ api/auth/login.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/auth/register$ api/auth/register.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/auth/me$ api/auth/me.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/users$ api/users/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/users/([0-9]+)$ api/users/show.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/users/([0-9]+)/update$ api/users/update.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/users/([0-9]+)/delete$ api/users/delete.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/users/([0-9]+)/avatar$ api/users/avatar.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/businesses$ api/businesses/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/businesses/([0-9]+)$ api/businesses/show.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/destinations$ api/destinations/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/destinations/([0-9]+)$ api/destinations/show.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/bookings$ api/bookings/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/bookings/([0-9]+)/update$ api/bookings/update.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/bookings/([0-9]+)/delete$ api/bookings/delete.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/reviews$ api/reviews/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/dashboard$ api/dashboard/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/stats$ api/stats.php [QSA,END]
