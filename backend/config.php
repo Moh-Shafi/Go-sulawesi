@@ -1,9 +1,16 @@
 <?php
+// Load local/production environment overrides if available
+// Create this file from .env.example.php on your server
+if (file_exists(__DIR__ . '/.env.php')) {
+    require_once __DIR__ . '/.env.php';
+}
+
 // Database configuration
-define('DB_HOST', getenv('DB_HOST') ?: 'db');
-define('DB_NAME', getenv('DB_NAME') ?: 'gosulawesi');
-define('DB_USER', getenv('DB_USER') ?: 'gosulawesi_user');
-define('DB_PASS', getenv('DB_PASS') ?: 'gosulawesi_pass');
+// Priority: 1) environment variables, 2) .env.php constants, 3) local Docker defaults
+define('DB_HOST', getenv('DB_HOST') ?: (defined('ENV_DB_HOST') ? ENV_DB_HOST : 'db'));
+define('DB_NAME', getenv('DB_NAME') ?: (defined('ENV_DB_NAME') ? ENV_DB_NAME : 'gosulawesi'));
+define('DB_USER', getenv('DB_USER') ?: (defined('ENV_DB_USER') ? ENV_DB_USER : 'gosulawesi_user'));
+define('DB_PASS', getenv('DB_PASS') ?: (defined('ENV_DB_PASS') ? ENV_DB_PASS : 'gosulawesi_pass'));
 
 // JWT-like simple token secret
 define('TOKEN_SECRET', 'gosulawesi_secret_key_2024');

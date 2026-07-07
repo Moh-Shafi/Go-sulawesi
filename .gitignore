@@ -31,3 +31,7 @@ temp_*.js
 
 # Windsurf IDE
 .windsurf/
+
+# Production credentials
+backend/.env.php
+.env.php
