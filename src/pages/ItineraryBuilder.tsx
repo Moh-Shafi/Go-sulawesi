@@ -81,14 +81,14 @@ const FALLBACK = [
   { id: 6, name: "Menre' ri Lontang", category: 'Cultural', city: 'Bulukumba', price: 950000, rating: 4.8, image_url: "/img/Menre' ri Lontang.jpg" },
 ]
 
-type Dest = typeof FALLBACK[0]
+type Dest = { id: number | string; name: string; category: string; city: string; price: number; rating: number; image_url: string }
 
 export default function ItineraryBuilder() {
   const navigate = useNavigate()
   const { lang, setLang } = useLang()
   const txt = t[lang]
   const dayLabels = DAYS[lang]
-  const [dests, setDests] = useState<Dest[]>(FALLBACK)
+  const [allItems, setAllItems] = useState<Dest[]>(FALLBACK)
   const [numDays, setNumDays] = useState(3)
   const [plan, setPlan] = useState<Record<number, Dest[]>>({ 0: [], 1: [], 2: [], 3: [], 4: [] })
   const [selectDest, setSelectDest] = useState<Dest | null>(null)
@@ -97,9 +97,18 @@ export default function ItineraryBuilder() {
   const [booked, setBooked] = useState(false)
 
   useEffect(() => {
-    api.getDestinations().then(r => {
-      const list = r.destinations || []
-      if (list.length > 0) setDests(list)
+    Promise.all([
+      api.getDestinations(),
+      api.getBusinesses(),
+    ]).then(([destRes, bizRes]) => {
+      const destList = (destRes.destinations || []).map((d: any) => ({
+        id: d.id, name: d.name, category: d.category, city: d.city, price: Number(d.price || 0), rating: Number(d.rating || 0), image_url: d.image_url || '',
+      }))
+      const bizList = (bizRes.businesses || []).filter((b: any) => b.status === 'approved').map((b: any) => ({
+        id: `biz-${b.id}`, name: b.business_name, category: b.business_type, city: b.city, price: Number(b.price || 0), rating: Number(b.rating || 0), image_url: b.image_url || '',
+      }))
+      const combined = [...destList, ...bizList]
+      if (combined.length > 0) setAllItems(combined)
     }).catch(() => {})
   }, [])
 
@@ -109,7 +118,7 @@ export default function ItineraryBuilder() {
     setSelectDest(null)
   }
 
-  const removeFromDay = (dayIdx: number, destId: number) => {
+  const removeFromDay = (dayIdx: number, destId: number | string) => {
     setPlan(p => ({ ...p, [dayIdx]: p[dayIdx].filter(d => d.id !== destId) }))
   }
 
@@ -122,15 +131,18 @@ export default function ItineraryBuilder() {
     setBooking(true)
     try {
       const date = new Date().toISOString().split('T')[0]
-      await Promise.all(selected.map(dest =>
-        api.createBooking({
-          destination_id: dest.id,
+      await Promise.all(selected.map(dest => {
+        const isBusiness = String(dest.id).startsWith('biz-')
+        const bizId = isBusiness ? Number(String(dest.id).replace('biz-', '')) : undefined
+        return api.createBooking({
+          destination_id: isBusiness ? undefined : dest.id,
+          business_id: bizId,
           booking_date: date,
           status: 'confirmed',
           total_price: dest.price,
           notes: `Added from itinerary builder`,
         })
-      ))
+      }))
       setBooked(true)
       setTimeout(() => {
         navigate('/tourist')
@@ -203,11 +215,11 @@ export default function ItineraryBuilder() {
               <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{txt.tapToAdd}</p>
             </div>
             <div className="p-3 space-y-2" style={{ maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
-              {dests.map(dest => {
-                const alreadyAdded = Object.values(plan).flat().some(d => d.id === dest.id)
+              {allItems.map(item => {
+                const alreadyAdded = Object.values(plan).flat().some(d => d.id === item.id)
                 return (
-                  <button key={dest.id}
-                    onClick={() => !alreadyAdded && setSelectDest(dest)}
+                  <button key={item.id}
+                    onClick={() => !alreadyAdded && setSelectDest(item)}
                     className="w-full rounded-xl overflow-hidden text-left cursor-pointer transition-all"
                     style={{
                       border: `2px solid ${alreadyAdded ? '#22c55e' : BORDER}`,
@@ -217,12 +229,11 @@ export default function ItineraryBuilder() {
                       padding: 0,
                     }}>
                     <div className="relative h-24">
-                      <img src={dest.image_url || '/img/Danau Tanralili.jpg'} alt=""
-                        className="w-full h-full object-cover" />
+                      <img src={item.image_url || '/img/Danau Tanralili.jpg'} alt="" className="w-full h-full object-cover" />
                       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%)' }} />
                       <div className="absolute top-2 left-2">
                         <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: A, color: 'white', fontSize: 10 }}>
-                          {dest.category?.toUpperCase()}
+                          {item.category?.toUpperCase()}
                         </span>
                       </div>
                       {alreadyAdded && (
@@ -231,16 +242,18 @@ export default function ItineraryBuilder() {
                         </div>
                       )}
                       <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-white text-xs font-bold leading-tight truncate">{dest.name}</p>
+                        <p className="text-white text-xs font-bold leading-tight truncate">{item.name}</p>
                       </div>
                     </div>
                     <div className="px-3 py-2 flex items-center justify-between">
-                      <span className="text-xs" style={{ color: MUTED }}>{dest.city}</span>
+                      <span className="text-xs" style={{ color: MUTED }}>{item.city}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold" style={{ color: '#f59e0b' }}>★ {dest.rating}</span>
-                        <span className="text-xs font-bold" style={{ color: A }}>
-                          Rp {Number(dest.price || 0).toLocaleString('id-ID')}
-                        </span>
+                        <span className="text-xs font-bold" style={{ color: '#f59e0b' }}>★ {item.rating || 'New'}</span>
+                        {Number(item.price) > 0 && (
+                          <span className="text-xs font-bold" style={{ color: A }}>
+                            Rp {Number(item.price).toLocaleString('id-ID')}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </button>
@@ -338,7 +351,7 @@ export default function ItineraryBuilder() {
       </div>
 
       {/* Day selector modal */}
-      {selectDest && selectDest.id > 0 && (
+      {selectDest && selectDest.id !== -1 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.5)' }}
           onClick={() => setSelectDest(null)}>

@@ -13,8 +13,8 @@ const SUBTLE = '#9ca3af'
 const BORDER = '#e5e7eb'
 const CARD = '#ffffff'
 
-const barData = [22, 38, 28, 45, 31, 50, 42]
-const barLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const defaultBarData = [22, 38, 28, 45, 31, 50, 42]
+const defaultBarLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const shadow = '0 1px 4px rgba(0,0,0,0.07)'
 
@@ -82,7 +82,6 @@ const t: Record<Lang, any> = {
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const { lang } = useLang()
-  const maxBar = Math.max(...barData)
   const currentUser = getStoredUser()
   const [stats, setStats] = useState<any>(null)
   const [recentUsers, setRecentUsers] = useState<any[]>([])
@@ -90,6 +89,9 @@ export default function AdminDashboard() {
   const [destinations, setDestinations] = useState<any[]>([])
   const [businesses, setBusinesses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const barData = stats?.weekly_bookings || defaultBarData
+  const barLabels = stats?.weekly_labels || t[lang].barLabels
+  const maxBar = Math.max(...barData)
 
   useEffect(() => {
     if (!currentUser) {
@@ -166,7 +168,7 @@ export default function AdminDashboard() {
       <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: shadow }}>
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-bold" style={{ color: TEXT }}>{t[lang].pendingBusinesses}</p>
-          <button onClick={() => navigate('/admin/listings')} className="w-7 h-7 rounded-full border flex items-center justify-center text-sm border-0 cursor-pointer"
+          <button onClick={() => navigate('/admin/businesses?status=pending')} className="w-7 h-7 rounded-full border flex items-center justify-center text-sm border-0 cursor-pointer"
             style={{ border: `1.5px solid ${BORDER}`, color: MUTED, background: 'transparent' }}>+</button>
         </div>
         <div>
@@ -185,7 +187,7 @@ export default function AdminDashboard() {
                   <p className="text-sm font-semibold" style={{ color: TEXT }}>{g.business_name}</p>
                   <p className="text-xs" style={{ color: SUBTLE }}>{g.city} · {g.business_type}</p>
                 </div>
-                <button onClick={() => navigate('/admin/listings')} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border-0 cursor-pointer font-medium transition-colors hover:opacity-80"
+                <button onClick={() => navigate('/admin/businesses?status=pending')} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border-0 cursor-pointer font-medium transition-colors hover:opacity-80"
                   style={{ background: AL, color: A }}>
                   {t[lang].review}
                 </button>
@@ -197,7 +199,7 @@ export default function AdminDashboard() {
             <p className="text-xs text-center py-4" style={{ color: SUBTLE }}>{t[lang].noPending}</p>
           )}
         </div>
-        <button onClick={() => navigate('/admin/listings')} className="w-full mt-3 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-colors hover:opacity-80"
+        <button onClick={() => navigate('/admin/businesses')} className="w-full mt-3 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-colors hover:opacity-80"
           style={{ background: AL, color: A }}>
           {t[lang].seeAll}
         </button>

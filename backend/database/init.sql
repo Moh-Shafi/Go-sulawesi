@@ -1,6 +1,6 @@
 -- GoSulawesi Database Schema
-CREATE DATABASE IF NOT EXISTS gosulawesi CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE gosulawesi;
+-- For shared hosting: database is already created by the panel
+-- For local Docker: database is created by docker-compose
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (

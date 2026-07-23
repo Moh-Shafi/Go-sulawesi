@@ -20,22 +20,47 @@ if ($method === 'GET') {
 if ($method === 'PUT') {
     $body = get_json_body();
 
-    if ($user['role'] === 'admin') {
-        // Admin can update status
+    // Status-only update (approve/reject from admin panel)
+    if (array_key_exists('status', $body) && count($body) === 1) {
+        $validStatus = in_array($body['status'], ['pending', 'approved', 'rejected']) ? $body['status'] : 'pending';
         $stmt = db()->prepare('UPDATE businesses SET status = ? WHERE id = ?');
-        $stmt->execute([$body['status'] ?? 'pending', $id]);
-    } else {
-        $stmt = db()->prepare('UPDATE businesses SET business_name=?, business_type=?, city=?, phone=?, description=?, nib=? WHERE id=? AND user_id=?');
-        $stmt->execute([
-            trim($body['business_name'] ?? ''),
-            trim($body['business_type'] ?? ''),
-            trim($body['city'] ?? ''),
-            trim($body['phone'] ?? ''),
-            $body['description'] ?? null,
-            $body['nib'] ?? null,
-            $id,
-            $user['user_id'],
-        ]);
+        $stmt->execute([$validStatus, $id]);
+    }
+    // Full business update (from edit form)
+    elseif (array_key_exists('business_name', $body)) {
+        if ($user['role'] === 'admin') {
+            $stmt = db()->prepare('UPDATE businesses SET business_name=?, business_type=?, city=?, phone=?, description=?, price=?, nib=?, status=? WHERE id = ?');
+            $stmt->execute([
+                trim($body['business_name'] ?? ''),
+                trim($body['business_type'] ?? ''),
+                trim($body['city'] ?? ''),
+                trim($body['phone'] ?? ''),
+                $body['description'] ?? null,
+                (float)($body['price'] ?? 0),
+                $body['nib'] ?? null,
+                $body['status'] ?? 'pending',
+                $id,
+            ]);
+        } else {
+            $stmt = db()->prepare('UPDATE businesses SET business_name=?, business_type=?, city=?, phone=?, description=?, price=?, nib=? WHERE id=? AND user_id=?');
+            $stmt->execute([
+                trim($body['business_name'] ?? ''),
+                trim($body['business_type'] ?? ''),
+                trim($body['city'] ?? ''),
+                trim($body['phone'] ?? ''),
+                $body['description'] ?? null,
+                (float)($body['price'] ?? 0),
+                $body['nib'] ?? null,
+                $id,
+                $user['user_id'],
+            ]);
+        }
+    }
+    // Status update with other fields
+    elseif (array_key_exists('status', $body)) {
+        $validStatus = in_array($body['status'], ['pending', 'approved', 'rejected']) ? $body['status'] : 'pending';
+        $stmt = db()->prepare('UPDATE businesses SET status = ? WHERE id = ?');
+        $stmt->execute([$validStatus, $id]);
     }
     $stmt = db()->prepare('SELECT * FROM businesses WHERE id = ?');
     $stmt->execute([$id]);

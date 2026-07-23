@@ -113,6 +113,22 @@ export const api = {
     request(`/businesses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteBusiness: (id: number) =>
     request(`/businesses/${id}`, { method: 'DELETE' }),
+  uploadBusinessImage: async (id: number, file: File): Promise<{ message: string; image_url: string }> => {
+    const token = getToken()
+    const formData = new FormData()
+    formData.append('image', file)
+    const res = await fetch(`${API_BASE}/businesses/${id}/image`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    })
+    const data = await res.json().catch(() => ({}))
+    console.log(`[API] POST /businesses/${id}/image -> ${res.status}`, data)
+    if (!res.ok) throw new Error((data as any).error || `HTTP ${res.status}`)
+    return data as { message: string; image_url: string }
+  },
 
   // ── Destinations ──
   getDestinations: (params?: Record<string, string>) => {

@@ -89,6 +89,7 @@ export default function BusinessLayout({ children, rightPanel, hideSearch, hideR
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [recentCustomers, setRecentCustomers] = useState<any[]>([])
 
+  const userId = currentUser?.user_id
   useEffect(() => {
     if (!currentUser) {
       navigate('/login')
@@ -109,7 +110,7 @@ export default function BusinessLayout({ children, rightPanel, hideSearch, hideR
         setRecentCustomers(customers)
       })
       .catch(() => {})
-  }, [currentUser, navigate])
+  }, [userId, navigate])
 
   const activeNav = navMain.find(n => location.pathname === n.path || (n.path !== '/business' && location.pathname.startsWith(n.path)))?.id || 'overview'
 

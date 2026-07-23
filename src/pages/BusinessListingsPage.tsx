@@ -29,12 +29,18 @@ const t: Record<Lang, any> = {
     city: 'City',
     phone: 'Phone',
     description: 'Description',
+    price: 'Price (Rp)',
     save: 'Save Changes',
     saving: 'Saving...',
     cancel: 'Cancel',
     saved: 'Listing saved successfully',
     error: 'Failed to save listing',
     deleteError: 'Failed to delete listing',
+    uploadImage: 'Upload Business Image',
+    imageHint: 'JPG, PNG, WebP or GIF. Max 2MB.',
+    uploading: 'Uploading image...',
+    imageUploaded: 'Image uploaded successfully',
+    imageError: 'Failed to upload image',
   },
   id: {
     pageTitle: 'Daftar Saya',
@@ -51,12 +57,18 @@ const t: Record<Lang, any> = {
     city: 'Kota',
     phone: 'Telepon',
     description: 'Deskripsi',
+    price: 'Harga (Rp)',
     save: 'Simpan Perubahan',
     saving: 'Menyimpan...',
     cancel: 'Batal',
     saved: 'Daftar berhasil disimpan',
     error: 'Gagal menyimpan daftar',
     deleteError: 'Gagal menghapus daftar',
+    uploadImage: 'Unggah Gambar Bisnis',
+    imageHint: 'JPG, PNG, WebP atau GIF. Maks 2MB.',
+    uploading: 'Mengunggah gambar...',
+    imageUploaded: 'Gambar berhasil diunggah',
+    imageError: 'Gagal mengunggah gambar',
   },
 }
 
@@ -71,7 +83,11 @@ export default function BusinessListingsPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [editing, setEditing] = useState<any>(null)
-  const [form, setForm] = useState({ business_name: '', business_type: '', city: '', phone: '', description: '', status: 'pending' })
+  const [form, setForm] = useState({ business_name: '', business_type: '', city: '', phone: '', description: '', price: '', status: 'pending' })
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>('')
+  const [imageUploading, setImageUploading] = useState(false)
+  const [imageError, setImageError] = useState('')
 
   useEffect(() => {
     if (!currentUser) {
@@ -97,10 +113,40 @@ export default function BusinessListingsPage() {
       city: b.city || '',
       phone: b.phone || '',
       description: b.description || '',
+      price: b.price != null ? String(b.price) : '',
       status: b.status || 'pending',
     })
+    setImageFile(null)
+    setImagePreview(b.image_url || '')
+    setImageError('')
     setError('')
     setSuccess('')
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageFile(file)
+    const reader = new FileReader()
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string)
+    reader.readAsDataURL(file)
+    setImageError('')
+  }
+
+  const handleUploadImage = async (businessId: number) => {
+    if (!imageFile) return
+    setImageUploading(true)
+    setImageError('')
+    try {
+      await api.uploadBusinessImage(businessId, imageFile)
+      setSuccess(txt.imageUploaded)
+      setImageFile(null)
+      fetchBusinesses()
+    } catch (err: any) {
+      setImageError(err.message || txt.imageError)
+    } finally {
+      setImageUploading(false)
+    }
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -110,7 +156,10 @@ export default function BusinessListingsPage() {
     setError('')
     setSuccess('')
     try {
-      await api.updateBusiness(editing.id, form)
+      await api.updateBusiness(editing.id, { ...form, price: Number(form.price) || 0 })
+      if (imageFile) {
+        await handleUploadImage(editing.id)
+      }
       setSuccess(txt.saved)
       fetchBusinesses()
       setEditing(null)
@@ -174,6 +223,9 @@ export default function BusinessListingsPage() {
                     </div>
                     <p className="text-sm" style={{ color: MUTED }}>{b.business_type} · {b.city}</p>
                     <p className="text-sm mt-1" style={{ color: SUBTLE }}>{b.description}</p>
+                    {Number(b.price) > 0 && (
+                      <p className="text-sm font-bold mt-1" style={{ color: '#ea580c' }}>Rp {Number(b.price).toLocaleString('id-ID')}</p>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => startEdit(b)} className="px-4 py-2 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:opacity-90" style={{ background: A }}>{txt.edit}</button>
@@ -213,9 +265,45 @@ export default function BusinessListingsPage() {
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ background: '#f9fafb', border: `1px solid ${BORDER}`, color: TEXT }} />
                 </div>
                 <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: SUBTLE }}>{txt.price}</label>
+                  <input type="number" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ background: '#f9fafb', border: `1px solid ${BORDER}`, color: TEXT }} />
+                </div>
+                <div>
                   <label className="block text-xs font-semibold mb-1.5" style={{ color: SUBTLE }}>{txt.description}</label>
                   <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ background: '#f9fafb', border: `1px solid ${BORDER}`, color: TEXT }} />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: SUBTLE }}>{txt.uploadImage}</label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
+                      style={{ background: '#f9fafb', border: `1px solid ${BORDER}` }}>
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={SUBTLE} strokeWidth="1.5">
+                          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border-0 cursor-pointer transition-all hover:opacity-90"
+                        style={{ background: AL, color: A }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        {imageFile ? 'Change' : 'Choose'} Image
+                        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleImageChange}
+                          className="hidden" />
+                      </label>
+                      <p className="text-xs mt-1.5" style={{ color: SUBTLE }}>{txt.imageHint}</p>
+                    </div>
+                  </div>
+                  {imageError && (
+                    <p className="text-xs mt-2" style={{ color: '#dc2626' }}>{imageError}</p>
+                  )}
+                  {imageUploading && (
+                    <p className="text-xs mt-2" style={{ color: A }}>{txt.uploading}</p>
+                  )}
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button type="submit" disabled={saving} className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:opacity-90 disabled:opacity-60" style={{ background: A }}>

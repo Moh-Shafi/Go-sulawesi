@@ -11,6 +11,7 @@ RewriteRule ^api/users/([0-9]+)/delete$ api/users/delete.php?id=$1 [QSA,END,E=HT
 RewriteRule ^api/users/([0-9]+)/avatar$ api/users/avatar.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteRule ^api/businesses$ api/businesses/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteRule ^api/businesses/([0-9]+)$ api/businesses/show.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/businesses/([0-9]+)/image$ api/businesses/image.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteRule ^api/destinations$ api/destinations/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteRule ^api/destinations/([0-9]+)$ api/destinations/show.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteRule ^api/bookings$ api/bookings/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

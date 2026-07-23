@@ -8,6 +8,8 @@ import AdminDashboard from './pages/AdminDashboard'
 import UsersPage from './pages/UsersPage'
 import ListingsPage from './pages/ListingsPage'
 import BookingsPage from './pages/BookingsPage'
+import AdminBusinessesPage from './pages/AdminBusinessesPage'
+import AdminLocalGuidesPage from './pages/AdminLocalGuidesPage'
 import ReportsPage from './pages/ReportsPage'
 import SettingsPage from './pages/SettingsPage'
 import OnboardingQuiz from './pages/OnboardingQuiz'
@@ -24,6 +26,7 @@ import TouristReviewsPage from './pages/TouristReviewsPage'
 import TouristFollowingPage from './pages/TouristFollowingPage'
 import DestinationDetailPage from './pages/DestinationDetailPage'
 import TouristSettingsPage from './pages/TouristSettingsPage'
+import BusinessDetailPage from './pages/BusinessDetailPage'
 
 function App() {
   return (
@@ -43,6 +46,7 @@ function App() {
         <Route path="/destination/:id" element={<DestinationDetailPage />} />
         <Route path="/itinerary" element={<ItineraryBuilder />} />
         <Route path="/business" element={<BusinessDashboard />} />
+        <Route path="/business/:id" element={<BusinessDetailPage />} />
         <Route path="/business/listings" element={<BusinessListingsPage />} />
         <Route path="/business/bookings" element={<BusinessBookingsPage />} />
         <Route path="/business/earnings" element={<BusinessEarningsPage />} />
@@ -51,6 +55,8 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<UsersPage />} />
         <Route path="/admin/listings" element={<ListingsPage />} />
+        <Route path="/admin/businesses" element={<AdminBusinessesPage />} />
+        <Route path="/admin/local-guides" element={<AdminLocalGuidesPage />} />
         <Route path="/admin/bookings" element={<BookingsPage />} />
         <Route path="/admin/reports" element={<ReportsPage />} />
         <Route path="/admin/settings" element={<SettingsPage />} />

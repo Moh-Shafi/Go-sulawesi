@@ -6,7 +6,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     $user = require_auth();
 
-    if ($user['role'] === 'admin') {
+    if ($user['role'] === 'admin' || $user['role'] === 'tourist') {
         $stmt = db()->query('
             SELECT b.*, u.name AS owner_name, u.email AS owner_email
             FROM businesses b JOIN users u ON b.user_id = u.id
@@ -25,10 +25,10 @@ if ($method === 'GET') {
 }
 
 if ($method === 'POST') {
-    $user = require_role('local');
+    $user = require_auth();
     $body = get_json_body();
 
-    $stmt = db()->prepare('INSERT INTO businesses (user_id, business_name, business_type, city, phone, description, nib) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    $stmt = db()->prepare('INSERT INTO businesses (user_id, business_name, business_type, city, phone, description, price, nib) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
     $stmt->execute([
         $user['user_id'],
         trim($body['business_name'] ?? ''),
@@ -36,6 +36,7 @@ if ($method === 'POST') {
         trim($body['city'] ?? ''),
         trim($body['phone'] ?? ''),
         $body['description'] ?? null,
+        (float)($body['price'] ?? 0),
         $body['nib'] ?? null,
     ]);
     $id = (int) db()->lastInsertId();

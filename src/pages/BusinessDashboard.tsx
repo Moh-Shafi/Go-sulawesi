@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, getStoredUser } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import BusinessLayout from '../components/BusinessLayout'
@@ -63,11 +63,17 @@ const t: Record<Lang, any> = {
     city: 'City',
     phone: 'Phone',
     description: 'Description',
+    price: 'Price (Rp)',
     cancel: 'Cancel',
     save: 'Save',
     saving: 'Saving...',
     saved: 'Listing saved successfully',
     error: 'Failed to save listing',
+    uploadImage: 'Upload Business Image',
+    imageHint: 'JPG, PNG, WebP or GIF. Max 2MB.',
+    uploading: 'Uploading image...',
+    imageUploaded: 'Image uploaded successfully',
+    imageError: 'Failed to upload image',
   },
   id: {
     myListings: 'Daftar Saya',
@@ -118,11 +124,17 @@ const t: Record<Lang, any> = {
     city: 'Kota',
     phone: 'Telepon',
     description: 'Deskripsi',
+    price: 'Harga (Rp)',
     cancel: 'Batal',
     save: 'Simpan',
     saving: 'Menyimpan...',
     saved: 'Daftar berhasil disimpan',
     error: 'Gagal menyimpan daftar',
+    uploadImage: 'Unggah Gambar Bisnis',
+    imageHint: 'JPG, PNG, WebP atau GIF. Maks 2MB.',
+    uploading: 'Mengunggah gambar...',
+    imageUploaded: 'Gambar berhasil diunggah',
+    imageError: 'Gagal mengunggah gambar',
   },
 }
 
@@ -168,6 +180,7 @@ const descID = [
 export default function BusinessDashboard() {
   const navigate = useNavigate()
   const { lang } = useLang()
+  const [searchParams, setSearchParams] = useSearchParams()
   const txt = t[lang]
   const maxBar = Math.max(...barData)
   const currentUser = getStoredUser()
@@ -181,7 +194,12 @@ export default function BusinessDashboard() {
   const [formSaving, setFormSaving] = useState(false)
   const [formError, setFormError] = useState('')
   const [formSuccess, setFormSuccess] = useState('')
-  const [form, setForm] = useState({ business_name: '', business_type: '', city: '', phone: '', description: '', status: 'pending' })
+  const [form, setForm] = useState({ business_name: '', business_type: '', city: '', phone: '', description: '', price: '', status: 'pending' })
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>('')
+  const [imageUploading, setImageUploading] = useState(false)
+  const [imageError, setImageError] = useState('')
+  const [savedBusinessId, setSavedBusinessId] = useState<number | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const [msgOpen, setMsgOpen] = useState(false)
   const [notifications, setNotifications] = useState([
@@ -197,7 +215,11 @@ export default function BusinessDashboard() {
 
   const openCreate = () => {
     setEditingBusiness(null)
-    setForm({ business_name: '', business_type: '', city: '', phone: '', description: '', status: 'pending' })
+    setForm({ business_name: '', business_type: '', city: '', phone: '', description: '', price: '', status: 'pending' })
+    setImageFile(null)
+    setImagePreview('')
+    setImageError('')
+    setSavedBusinessId(null)
     setFormError('')
     setFormSuccess('')
     setShowModal(true)
@@ -213,11 +235,43 @@ export default function BusinessDashboard() {
       city: b.city || '',
       phone: b.phone || '',
       description: b.description || '',
+      price: b.price != null ? String(b.price) : '',
       status: b.status || 'pending',
     })
+    setImageFile(null)
+    setImagePreview(b.image_url || '')
+    setImageError('')
+    setSavedBusinessId(b.id)
     setFormError('')
     setFormSuccess('')
     setShowModal(true)
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageFile(file)
+    const reader = new FileReader()
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string)
+    reader.readAsDataURL(file)
+    setImageError('')
+  }
+
+  const handleUploadImage = async (businessId: number) => {
+    if (!imageFile) return
+    setImageUploading(true)
+    setImageError('')
+    try {
+      await api.uploadBusinessImage(businessId, imageFile)
+      setFormSuccess(txt.imageUploaded)
+      setImageFile(null)
+      const r = await api.getBusinesses()
+      setBusinesses(r.businesses || [])
+    } catch (err: any) {
+      setImageError(err.message || txt.imageError)
+    } finally {
+      setImageUploading(false)
+    }
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -226,10 +280,17 @@ export default function BusinessDashboard() {
     setFormError('')
     setFormSuccess('')
     try {
+      let bizId = editingBusiness?.id
+      const payload = { ...form, price: Number(form.price) || 0 }
       if (editingBusiness) {
-        await api.updateBusiness(editingBusiness.id, form)
+        await api.updateBusiness(editingBusiness.id, payload)
       } else {
-        await api.createBusiness(form)
+        const res = await api.createBusiness(payload)
+        bizId = res.business?.id
+        setSavedBusinessId(bizId ?? null)
+      }
+      if (imageFile && bizId) {
+        await handleUploadImage(bizId)
       }
       setFormSuccess(txt.saved)
       const r = await api.getBusinesses()
@@ -263,6 +324,13 @@ export default function BusinessDashboard() {
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [navigate])
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      openCreate()
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams])
 
   return (
     <BusinessLayout rightPanel={(
@@ -504,13 +572,13 @@ export default function BusinessDashboard() {
             <h3 className="font-black text-base" style={{ color: TEXT, letterSpacing: '-0.02em' }}>{txt.myListings}</h3>
             <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{businesses.filter((b:any) => b.status === 'approved').length} {txt.active} · {businesses.filter((b:any) => b.status === 'pending').length} {txt.pendingReview}</p>
           </div>
-          <button className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer hover:opacity-80"
+          <button onClick={openCreate} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer hover:opacity-80"
             style={{ background: AL, color: A }}>{txt.newListing}</button>
         </div>
         {businesses.length === 0 && (
           <div className="text-center py-12 rounded-2xl" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
             <p className="text-sm mb-2" style={{ color: SUBTLE }}>{txt.noListings}</p>
-            <button className="text-xs font-semibold px-4 py-2 rounded-lg border-0 cursor-pointer" style={{ background: A, color: 'white' }}>{txt.createFirstListing}</button>
+            <button onClick={openCreate} className="text-xs font-semibold px-4 py-2 rounded-lg border-0 cursor-pointer" style={{ background: A, color: 'white' }}>{txt.createFirstListing}</button>
           </div>
         )}
         {businesses.length > 0 && (
@@ -563,7 +631,7 @@ export default function BusinessDashboard() {
             <h3 className="font-black text-base" style={{ color: TEXT, letterSpacing: '-0.02em' }}>{txt.recentBookings}</h3>
             <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{bookings.filter((b:any) => b.status==='confirmed').length} {txt.confirmed} · {bookings.filter((b:any) => b.status==='pending').length} {txt.pending}</p>
           </div>
-          <button className="text-xs font-semibold border-0 bg-transparent cursor-pointer px-3 py-1.5 rounded-lg hover:bg-gray-100" style={{ color: A }}>{txt.viewAll}</button>
+          <button onClick={() => navigate('/business/bookings')} className="text-xs font-semibold border-0 bg-transparent cursor-pointer px-3 py-1.5 rounded-lg hover:bg-gray-100" style={{ color: A }}>{txt.viewAll}</button>
         </div>
         <div className="space-y-3">
           {bookings.length === 0 && (
@@ -641,9 +709,45 @@ export default function BusinessDashboard() {
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ background: '#f9fafb', border: `1px solid ${BORDER}`, color: TEXT }} />
             </div>
             <div>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: SUBTLE }}>{txt.price}</label>
+              <input type="number" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ background: '#f9fafb', border: `1px solid ${BORDER}`, color: TEXT }} />
+            </div>
+            <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: SUBTLE }}>{txt.description}</label>
               <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3}
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ background: '#f9fafb', border: `1px solid ${BORDER}`, color: TEXT }} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: SUBTLE }}>{txt.uploadImage}</label>
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
+                  style={{ background: '#f9fafb', border: `1px solid ${BORDER}` }}>
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={SUBTLE} strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border-0 cursor-pointer transition-all hover:opacity-90"
+                    style={{ background: AL, color: A }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    {imageFile ? 'Change' : 'Choose'} Image
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleImageChange}
+                      className="hidden" />
+                  </label>
+                  <p className="text-xs mt-1.5" style={{ color: SUBTLE }}>{txt.imageHint}</p>
+                </div>
+              </div>
+              {imageError && (
+                <p className="text-xs mt-2" style={{ color: '#dc2626' }}>{imageError}</p>
+              )}
+              {imageUploading && (
+                <p className="text-xs mt-2" style={{ color: A }}>{txt.uploading}</p>
+              )}
             </div>
             <div className="flex gap-3 pt-2">
               <button type="submit" disabled={formSaving} className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:opacity-90 disabled:opacity-60" style={{ background: A }}>

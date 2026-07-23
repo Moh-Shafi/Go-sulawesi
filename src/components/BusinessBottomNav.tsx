@@ -64,7 +64,7 @@ export default function BusinessBottomNav() {
             )
           })}
 
-          <Link to="/business/bookings" className="flex flex-col items-center no-underline animate-float-center">
+          <Link to="/business?new=1" className="flex flex-col items-center no-underline animate-float-center">
             <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
               style={{ background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)', boxShadow: '0 8px 24px rgba(234,88,12,0.4)' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">

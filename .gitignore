@@ -35,3 +35,12 @@ temp_*.js
 # Production credentials
 backend/.env.php
 .env.php
+
+# Non-project files
+*.pptx
+*.xlsx
+business-plan.md
+tourist-reviews-summary.md
+
+# User-uploaded content
+backend/uploads/

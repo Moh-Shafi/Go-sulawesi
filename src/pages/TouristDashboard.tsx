@@ -71,6 +71,10 @@ const t: Record<Lang, any> = {
     youMightLove: 'You Might Love',
     seeAllPlain: 'See all',
     moreDestinations: 'More destinations coming soon!',
+    moreToExplore: 'More to Explore',
+    moreAvailable: 'more places to discover',
+    localBusinesses: 'Local Businesses',
+    businessesAvailable: 'businesses available',
     styleLabels: { adventure: 'Adventure Seeker', culture: 'Culture Explorer', nature: 'Nature Lover', culinary: 'Food Enthusiast' },
     barLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     statusLabels: { confirmed: 'Confirmed', completed: 'Completed', pending: 'Pending', cancelled: 'Cancelled' },
@@ -129,6 +133,10 @@ const t: Record<Lang, any> = {
     youMightLove: 'Mungkin Anda Suka',
     seeAllPlain: 'Lihat semua',
     moreDestinations: 'Destinasi lainnya segera hadir!',
+    moreToExplore: 'Jelajahi Lebih Banyak',
+    moreAvailable: 'tempat lain untuk ditemukan',
+    localBusinesses: 'Bisnis Lokal',
+    businessesAvailable: 'bisnis tersedia',
     styleLabels: { adventure: 'Pencari Petualangan', culture: 'Penjelajah Budaya', nature: 'Pencinta Alam', culinary: 'Pencinta Kuliner' },
     barLabels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
     statusLabels: { confirmed: 'Terkonfirmasi', completed: 'Selesai', pending: 'Tertunda', cancelled: 'Dibatalkan' },
@@ -193,6 +201,15 @@ export default function TouristDashboard() {
   }
   const filteredDestinations = destinations.filter(d => categoryMatches(d, activeCategory))
 
+  const goToItem = (item: any) => {
+    if (item.isBusiness) {
+      const bizId = String(item.id).replace('biz-', '')
+      navigate(`/business/${bizId}`)
+    } else {
+      navigate(`/destination/${item.id}`)
+    }
+  }
+
   useEffect(() => {
     if (!currentUser) {
       navigate('/login')
@@ -202,9 +219,18 @@ export default function TouristDashboard() {
       api.getDashboard(),
       api.getDestinations(),
       api.getBookings(),
-    ]).then(([dash, dests, bkgs]) => {
+      api.getBusinesses(),
+    ]).then(([dash, dests, bkgs, bizs]) => {
       setStats(dash)
-      const sorted = [...(dests.destinations || [])].sort((a, b) => matchScore(b, prefs) - matchScore(a, prefs))
+      const bizList = (bizs.businesses || []).filter((b: any) => b.status === 'approved').map((b: any) => ({
+        ...b,
+        id: `biz-${b.id}`,
+        name: b.business_name,
+        category: b.business_type,
+        price: Number(b.price || 0),
+        isBusiness: true,
+      }))
+      const sorted = [...(dests.destinations || []), ...bizList].sort((a, b) => matchScore(b, prefs) - matchScore(a, prefs))
       setDestinations(sorted)
       setBookings(bkgs.bookings || [])
     }).catch(() => {})
@@ -315,7 +341,7 @@ export default function TouristDashboard() {
                 <div className="space-y-0">
                   {(filteredDestinations || []).slice(3, 6).map((p, i, arr) => (
                     <div key={i}>
-                      <div className="flex items-center gap-3 py-3 cursor-pointer" onClick={() => navigate(`/destination/${p.id}`)}>
+                      <div className="flex items-center gap-3 py-3 cursor-pointer" onClick={() => goToItem(p)}>
                         <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-xs font-bold text-white"
                           style={{ background: A }}>
                           {p.name?.charAt(0) || 'D'}
@@ -354,7 +380,7 @@ export default function TouristDashboard() {
 
             {/* ── Hero Full Bleed ── */}
             <div className="relative overflow-hidden cursor-pointer group" style={{ height: 240 }}
-              onClick={() => filteredDestinations[0]?.id && navigate(`/destination/${filteredDestinations[0].id}`)}>
+              onClick={() => filteredDestinations[0]?.id && goToItem(filteredDestinations[0])}>
               <img src={filteredDestinations[0]?.image_url || '/img/Danau Tanralili.jpg'} alt="hero"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0" style={{
@@ -383,7 +409,7 @@ export default function TouristDashboard() {
                 </p>
                 <h2 className="text-2xl font-black text-white mb-4" style={{ letterSpacing: '-0.03em' }}>{filteredDestinations[0]?.name || 'Danau Tanralili'}</h2>
                 <div className="flex items-center gap-2">
-                  <button onClick={(e) => { e.stopPropagation(); filteredDestinations[0]?.id && navigate(`/destination/${filteredDestinations[0].id}`) }}
+                  <button onClick={(e) => { e.stopPropagation(); filteredDestinations[0]?.id && goToItem(filteredDestinations[0]) }}
                     className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold border-0 cursor-pointer transition-transform hover:scale-105"
                     style={{ background: A, color: 'white', boxShadow: `0 4px 14px ${A}66` }}>
                     {txt.bookNow} · Rp {Number(filteredDestinations[0]?.price || 0).toLocaleString('id-ID')}
@@ -504,7 +530,7 @@ export default function TouristDashboard() {
                     <h3 className="font-black text-base" style={{ color: TEXT, letterSpacing: '-0.02em' }}>{txt.exploreSulawesi}</h3>
                     <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{txt.destinationsAvailable.replace('{count}', String(filteredDestinations.length))}</p>
                   </div>
-                  <button onClick={() => navigate('/tourist')}
+                  <button onClick={() => navigate('/itinerary')}
                     className="text-xs font-semibold border-0 bg-transparent cursor-pointer px-3 py-1.5 rounded-lg transition-colors hover:bg-gray-100" style={{ color: A }}>{txt.seeAll}</button>
                 </div>
 
@@ -513,7 +539,7 @@ export default function TouristDashboard() {
                   {/* Big card spans 2 rows */}
                   {filteredDestinations[0] && (
                   <div className="rounded-2xl overflow-hidden cursor-pointer group relative" style={{ gridRow: 'span 2' }}
-                    onClick={() => navigate(`/destination/${filteredDestinations[0].id}`)}>
+                    onClick={() => goToItem(filteredDestinations[0])}>
                     <img src={filteredDestinations[0].image_url || '/img/Danau Tanralili.jpg'} alt=""
                       className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-105" />
                     <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%)' }} />
@@ -559,7 +585,7 @@ export default function TouristDashboard() {
                   {/* Small cards */}
                   {(filteredDestinations[1] || filteredDestinations[2]) && [filteredDestinations[1], filteredDestinations[2]].filter(Boolean).map((c, i) => (
                     <div key={i} className="rounded-2xl overflow-hidden cursor-pointer group relative"
-                      onClick={() => navigate(`/destination/${c.id}`)}>
+                      onClick={() => goToItem(c)}>
                       <img src={c.image_url || '/img/Desa_Bonto_Manai.jpg'} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)' }} />
                       <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
@@ -583,6 +609,39 @@ export default function TouristDashboard() {
                 </div>
               </div>
 
+              {/* ── More to Explore ── */}
+              {filteredDestinations.length > 6 && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-black text-base" style={{ color: TEXT, letterSpacing: '-0.02em' }}>{txt.moreToExplore}</h3>
+                    <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{filteredDestinations.length - 6} {txt.moreAvailable}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {filteredDestinations.slice(6).map((d, i) => (
+                    <div key={i} className="rounded-2xl overflow-hidden cursor-pointer group relative h-[140px]"
+                      onClick={() => goToItem(d)}>
+                      <img src={d.image_url || '/img/Desa_Bonto_Manai.jpg'} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 55%)' }} />
+                      <div className="absolute top-2 left-2">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: d.isBusiness ? '#0d9488' : A, color: 'white', fontSize: 10 }}>{d.category?.toUpperCase()}</span>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                        <p className="text-white font-bold text-xs leading-tight truncate">{d.name}</p>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>{d.city}</p>
+                          {Number(d.price) > 0 && (
+                            <p className="text-xs font-bold" style={{ color: A }}>Rp {Number(d.price).toLocaleString('id-ID')}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              )}
+
               {/* ── Upcoming Adventures ── */}
               <div>
                 <div className="flex items-center justify-between mb-4">
@@ -590,7 +649,8 @@ export default function TouristDashboard() {
                     <h3 className="font-black text-base" style={{ color: TEXT, letterSpacing: '-0.02em' }}>{txt.myBookings}</h3>
                     <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{txt.totalBookings.replace('{count}', String(bookings.length))}</p>
                   </div>
-                  <button className="text-xs font-semibold border-0 bg-transparent cursor-pointer px-3 py-1.5 rounded-lg hover:bg-gray-100" style={{ color: A }}>{txt.seeAll}</button>
+                  <button onClick={() => navigate('/tourist/bookings')}
+                    className="text-xs font-semibold border-0 bg-transparent cursor-pointer px-3 py-1.5 rounded-lg hover:bg-gray-100" style={{ color: A }}>{txt.seeAll}</button>
                 </div>
                 <div className="space-y-3">
                   {bookings.length === 0 && (

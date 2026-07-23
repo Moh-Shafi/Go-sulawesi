@@ -32,6 +32,11 @@ const navMain = [
       <circle cx="12" cy="9" r="2.5"/>
     </svg>
   ), path: '/admin/listings' },
+  { id: 'businesses', label: { en: 'Businesses', id: 'Bisnis' }, icon: (_active: boolean) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  ), path: '/admin/businesses' },
   { id: 'bookings', label: { en: 'Bookings', id: 'Pemesanan' }, icon: (_active: boolean) => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
       <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
@@ -130,10 +135,13 @@ export default function AdminLayout({ children, rightPanel }: { children: React.
 
         {/* Local Guides */}
         <div className="px-5 mb-6">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-4 px-1" style={{ color: SUBTLE }}>{t[lang].localGuides}</p>
+          <div className="flex items-center justify-between mb-4 px-1">
+            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: SUBTLE }}>{t[lang].localGuides}</p>
+            <Link to="/admin/local-guides" className="text-xs font-bold no-underline hover:opacity-80 transition-opacity" style={{ color: A }}>View all</Link>
+          </div>
           <div className="space-y-1">
             {(businesses || []).slice(0, 3).map((b, i) => (
-              <div key={i} className="flex items-center gap-3 px-2 py-2.5 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+              <Link key={i} to="/admin/local-guides" className="flex items-center gap-3 px-2 py-2.5 rounded-xl no-underline hover:bg-gray-50 transition-colors">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
                   style={{ background: A, border: '2px solid #e5e7eb' }}>
                   {b.business_name?.charAt(0) || 'B'}
@@ -142,7 +150,7 @@ export default function AdminLayout({ children, rightPanel }: { children: React.
                   <p className="text-sm font-semibold leading-tight" style={{ color: TEXT }}>{b.business_name}</p>
                   <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{b.business_type}</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
