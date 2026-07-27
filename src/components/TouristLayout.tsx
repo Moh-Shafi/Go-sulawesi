@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { getStoredUser, clearToken } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import TouristBottomNav from './TouristBottomNav'
+import ReelsNavIcon from './ReelsNavIcon'
 
 const A = '#0d9488'
 const AL = '#f0fdfa'
@@ -26,6 +27,9 @@ const navMain = [
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
     </svg>
+  )},
+  { id: 'reels', labelKey: 'reels', path: '/reels', icon: (active: boolean) => (
+    <ReelsNavIcon active={active} />
   )},
   { id: 'trips', labelKey: 'myTrips', path: '/tourist/trips', icon: (_a: boolean) => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -54,6 +58,11 @@ const navMain = [
       <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>
   )},
+  { id: 'messages', labelKey: 'messages', path: '/tourist/messages', icon: (_a: boolean) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  )},
 ]
 
 const followingGuides = [
@@ -66,11 +75,13 @@ const t: Record<Lang, any> = {
   en: {
     explore: 'Explore',
     discover: 'Discover',
+    reels: 'Reels',
     myTrips: 'My Trips',
     savedPlaces: 'Saved Places',
     bookings: 'Bookings',
     reviews: 'Reviews',
     following: 'Following',
+    messages: 'Messages',
     settings: 'Settings',
     setting: 'Setting',
     logout: 'Logout',
@@ -79,11 +90,13 @@ const t: Record<Lang, any> = {
   id: {
     explore: 'Jelajahi',
     discover: 'Temukan',
+    reels: 'Reels',
     myTrips: 'Perjalanan Saya',
     savedPlaces: 'Tempat Tersimpan',
     bookings: 'Pemesanan',
     reviews: 'Ulasan',
     following: 'Diikuti',
+    messages: 'Pesan',
     settings: 'Pengaturan',
     setting: 'Pengaturan',
     logout: 'Keluar',
@@ -139,16 +152,22 @@ export default function TouristLayout({ children, rightPanel, hideSearch, title,
           <div className="space-y-1">
             {navMain.map(item => {
               const isActive = activeNav === item.id
+              const isReels = item.id === 'reels'
               return (
                 <Link key={item.id} to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className="w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-base text-left no-underline transition-all"
+                  className={`w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-base text-left no-underline transition-all ${isReels && !isActive ? 'reels-nav-row' : ''}`}
                   style={{ background: isActive ? AL : 'transparent', color: isActive ? A : TEXT, fontWeight: isActive ? 700 : 400 }}>
-                  <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl transition-all"
+                  <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl transition-all relative"
                     style={{ background: isActive ? A : 'transparent', color: isActive ? 'white' : MUTED }}>
                     {item.icon(isActive)}
                   </span>
-                  {txt[item.labelKey]}
+                  <span className="flex items-center gap-2">
+                    {txt[item.labelKey]}
+                    {isReels && !isActive && (
+                      <span className="reels-badge text-[9px] font-black px-1.5 py-0.5 rounded-full text-white" style={{ background: '#ef4444', letterSpacing: '0.02em' }}>NEW</span>
+                    )}
+                  </span>
                 </Link>
               )
             })}

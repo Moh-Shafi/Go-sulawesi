@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api, getStoredUser } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import BusinessLayout from '../components/BusinessLayout'
+import BusinessHoursEditor, { defaultBusinessHours, compactHours } from '../components/BusinessHoursEditor'
 
 const A = '#ea580c'
 const AL = '#fff7ed'
@@ -84,6 +85,7 @@ export default function BusinessListingsPage() {
   const [success, setSuccess] = useState('')
   const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState({ business_name: '', business_type: '', city: '', phone: '', description: '', price: '', status: 'pending' })
+  const [businessHours, setBusinessHours] = useState<any>(defaultBusinessHours())
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
   const [imageUploading, setImageUploading] = useState(false)
@@ -116,6 +118,7 @@ export default function BusinessListingsPage() {
       price: b.price != null ? String(b.price) : '',
       status: b.status || 'pending',
     })
+    setBusinessHours(b.business_hours || defaultBusinessHours())
     setImageFile(null)
     setImagePreview(b.image_url || '')
     setImageError('')
@@ -156,7 +159,7 @@ export default function BusinessListingsPage() {
     setError('')
     setSuccess('')
     try {
-      await api.updateBusiness(editing.id, { ...form, price: Number(form.price) || 0 })
+      await api.updateBusiness(editing.id, { ...form, price: Number(form.price) || 0, business_hours: businessHours })
       if (imageFile) {
         await handleUploadImage(editing.id)
       }
@@ -226,6 +229,12 @@ export default function BusinessListingsPage() {
                     {Number(b.price) > 0 && (
                       <p className="text-sm font-bold mt-1" style={{ color: '#ea580c' }}>Rp {Number(b.price).toLocaleString('id-ID')}</p>
                     )}
+                    {b.business_hours && (
+                      <div className="flex items-center gap-1.5 mt-2 px-3 py-2 rounded-xl" style={{ background: '#fff7ed', border: '1px solid #fed7aa' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span className="text-sm font-bold" style={{ color: '#c2410c' }}>{compactHours(b.business_hours, lang)}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => startEdit(b)} className="px-4 py-2 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:opacity-90" style={{ background: A }}>{txt.edit}</button>
@@ -239,7 +248,7 @@ export default function BusinessListingsPage() {
 
         {editing && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setEditing(null)}>
-            <div className="rounded-2xl p-6 w-full max-w-lg" style={{ background: CARD }} onClick={e => e.stopPropagation()}>
+            <div className="rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ background: CARD }} onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-bold mb-4" style={{ color: TEXT }}>{txt.editTitle}</h3>
               <form onSubmit={handleSave} className="space-y-4">
                 <div>
@@ -305,6 +314,7 @@ export default function BusinessListingsPage() {
                     <p className="text-xs mt-2" style={{ color: A }}>{txt.uploading}</p>
                   )}
                 </div>
+                <BusinessHoursEditor value={businessHours} onChange={setBusinessHours} lang={lang} />
                 <div className="flex gap-3 pt-2">
                   <button type="submit" disabled={saving} className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:opacity-90 disabled:opacity-60" style={{ background: A }}>
                     {saving ? txt.saving : txt.save}

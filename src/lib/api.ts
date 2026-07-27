@@ -160,9 +160,182 @@ export const api = {
   createReview: (data: any) =>
     request('/reviews', { method: 'POST', body: JSON.stringify(data) }),
 
+  // ── Promotions ──
+  getPromotions: () => request('/promotions'),
+  getPromotion: (id: number) => request(`/promotions/${id}`),
+  createPromotion: (data: any) =>
+    request('/promotions', { method: 'POST', body: JSON.stringify(data) }),
+  updatePromotion: (id: number, data: any) =>
+    request(`/promotions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deletePromotion: (id: number) =>
+    request(`/promotions/${id}`, { method: 'DELETE' }),
+  uploadPromotionImage: async (id: number, file: File): Promise<{ message: string; image_url: string }> => {
+    const token = getToken()
+    const formData = new FormData()
+    formData.append('image', file)
+    const res = await fetch(`${API_BASE}/promotions/${id}/image`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    })
+    const data = await res.json().catch(() => ({}))
+    console.log(`[API] POST /promotions/${id}/image -> ${res.status}`, data)
+    if (!res.ok) throw new Error((data as any).error || `HTTP ${res.status}`)
+    return data as { message: string; image_url: string }
+  },
+
+  // ── Chat ──
+  getConversations: () => request('/chat'),
+  getConversation: (id: number) => request(`/chat/${id}`),
+  startConversation: (businessId: number) =>
+    request('/chat', { method: 'POST', body: JSON.stringify({ business_id: businessId }) }),
+  sendMessage: (convId: number, text: string) =>
+    request(`/chat/${convId}`, { method: 'POST', body: JSON.stringify({ message_text: text }) }),
+  closeConversation: (convId: number) =>
+    request(`/chat/${convId}`, { method: 'PUT', body: JSON.stringify({ status: 'closed' }) }),
+  deleteMessage: (convId: number, msgId: number) =>
+    request(`/chat/${convId}`, { method: 'DELETE', body: JSON.stringify({ message_id: msgId }) }),
+
   // ── Dashboard ──
   getDashboard: () => request('/dashboard'),
 
   // ── Public Stats ──
   getStats: () => request('/stats'),
+
+  // ── Social Videos ──
+  getVideos: (params?: { mine?: boolean; saved?: boolean }) => {
+    const qs = new URLSearchParams()
+    if (params?.mine) qs.set('mine', '1')
+    if (params?.saved) qs.set('saved', '1')
+    const suffix = qs.toString() ? `?${qs.toString()}` : ''
+    return request<{ videos: FeedVideo[] }>(`/videos${suffix}`)
+  },
+  getVideo: (id: number) => request<{ video: FeedVideo }>(`/videos/${id}`),
+  createVideo: (data: {
+    video_url: string
+    thumbnail_url?: string | null
+    caption?: string
+    business_id?: number | null
+    destination_id?: number | null
+    city?: string | null
+    duration_sec?: number
+    sound_id?: number | null
+  }) => request<{ video: FeedVideo }>('/videos', { method: 'POST', body: JSON.stringify(data) }),
+  deleteVideo: (id: number) => request(`/videos/${id}`, { method: 'DELETE' }),
+  toggleVideoLike: (id: number) =>
+    request<{ liked: boolean; likes: number }>(`/videos/${id}/like`, { method: 'POST' }),
+  toggleVideoSave: (id: number) =>
+    request<{ is_saved: boolean }>(`/videos/${id}/save`, { method: 'POST' }),
+  getVideoComments: (id: number) =>
+    request<{ comments: VideoComment[] }>(`/videos/${id}/comments`),
+  addVideoComment: (id: number, text: string) =>
+    request<{ comment: VideoComment }>(`/videos/${id}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ comment_text: text }),
+    }),
+  deleteVideoComment: (videoId: number, commentId: number) =>
+    request(`/videos/${videoId}/comments?comment_id=${commentId}`, { method: 'DELETE' }),
+  countVideoView: (id: number) => request(`/videos/${id}/view`, { method: 'POST' }),
+  shareVideo: (id: number) => request(`/videos/${id}/share`, { method: 'POST' }),
+  getSounds: () => request<{ sounds: VideoSound[] }>('/videos/sounds'),
+  getVideoStats: (videoId: number) => request<{ video_id: number; totals: VideoStatsTotals; daily: VideoDailyStat[] }>(`/videos/stats?video_id=${videoId}`),
+  getMyVideoStats: () => request<{ aggregate: VideoStatsTotals & { total_videos: number }; top_videos: VideoTopVideo[]; daily: VideoDailyStat[] }>(`/videos/stats?mine=1`),
+  uploadVideoFile: async (
+    file: File,
+    thumbnail?: Blob | null
+  ): Promise<{ message: string; video_url: string; thumbnail_url?: string }> => {
+    const token = getToken()
+    const formData = new FormData()
+    formData.append('video', file)
+    if (thumbnail) formData.append('thumbnail', thumbnail, 'poster.jpg')
+    const res = await fetch(`${API_BASE}/videos/upload`, {
+      method: 'POST',
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: formData,
+    })
+    const raw = await res.text()
+    let data: any = {}
+    try { data = JSON.parse(raw) } catch {
+      console.error('[API] POST /videos/upload -> non-JSON response:', raw.substring(0, 200))
+      throw new Error('Server returned an error (possibly the file is too large or a server misconfiguration). Check console for details.')
+    }
+    console.log(`[API] POST /videos/upload -> ${res.status}`, data)
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+    if (!data.video_url) throw new Error(data.error || 'Upload failed: server did not return a video URL.')
+    return data as { message: string; video_url: string; thumbnail_url?: string }
+  },
+}
+
+export type FeedVideo = {
+  id: number
+  video_url: string
+  thumbnail_url: string | null
+  caption: string | null
+  city: string | null
+  business_id: number | null
+  destination_id: number | null
+  duration_sec: number
+  views: number
+  shares: number
+  created_at: string
+  user_id: number
+  user_name: string
+  user_avatar: string | null
+  business_name: string | null
+  business_type?: string | null
+  destination_name: string | null
+  sound_title: string | null
+  sound_artist: string | null
+  sound_url: string | null
+  likes: number
+  comments: number
+  liked: boolean
+  is_saved: boolean
+}
+
+export type VideoComment = {
+  id: number
+  comment_text: string
+  created_at: string
+  user_id: number
+  user_name: string
+  user_avatar: string | null
+}
+
+export type VideoSound = {
+  id: number
+  title: string
+  artist: string
+  audio_url: string
+  duration_sec: number
+  category: string
+  usage_count: number
+}
+
+export type VideoStatsTotals = {
+  views: number
+  likes: number
+  comments: number
+  shares: number
+}
+
+export type VideoDailyStat = {
+  stat_date: string
+  views: number
+  likes: number
+  comments: number
+  shares: number
+}
+
+export type VideoTopVideo = {
+  id: number
+  caption: string | null
+  thumbnail_url: string | null
+  views: number
+  likes: number
+  comments: number
+  shares: number
+  created_at: string
 }

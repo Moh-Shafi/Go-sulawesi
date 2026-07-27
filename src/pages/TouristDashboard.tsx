@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, getStoredUser } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
+import ChatWidget from '../components/ChatWidget'
+import { compactHours } from '../components/BusinessHoursEditor'
 import { getSavedIds, toggleSavedId } from '../lib/saved'
 import TouristLayout from '../components/TouristLayout'
 
@@ -33,11 +35,12 @@ const t: Record<Lang, any> = {
     reviewsCount: 'reviews',
     bookNow: 'Book Now',
     all: 'All',
-    nature: 'Nature',
-    culture: 'Culture',
-    adventure: 'Adventure',
-    village: 'Village',
-    coastal: 'Coastal',
+    food: 'Food & Cafe',
+    stay: 'Stay',
+    guide: 'Tour Guide',
+    dive: 'Dive & Sports',
+    craft: 'Craft & Shop',
+    transport: 'Transport',
     tripsTaken: 'Trips Taken',
     saved: 'Saved',
     total: 'total',
@@ -75,9 +78,15 @@ const t: Record<Lang, any> = {
     moreAvailable: 'more places to discover',
     localBusinesses: 'Local Businesses',
     businessesAvailable: 'businesses available',
+    hotDeals: 'Hot Deals',
+    hotDealsSub: 'Special offers from local businesses',
+    off: 'OFF',
+    validUntil: 'Valid until',
+    viewDeal: 'View Deal',
     styleLabels: { adventure: 'Adventure Seeker', culture: 'Culture Explorer', nature: 'Nature Lover', culinary: 'Food Enthusiast' },
     barLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     statusLabels: { confirmed: 'Confirmed', completed: 'Completed', pending: 'Pending', cancelled: 'Cancelled' },
+    chatHint: 'Have a question? Chat directly!',
   },
   id: {
     explore: 'Jelajahi',
@@ -95,11 +104,12 @@ const t: Record<Lang, any> = {
     reviewsCount: 'ulasan',
     bookNow: 'Pesan Sekarang',
     all: 'Semua',
-    nature: 'Alam',
-    culture: 'Budaya',
-    adventure: 'Petualangan',
-    village: 'Desa',
-    coastal: 'Pantai',
+    food: 'Makanan & Cafe',
+    stay: 'Penginapan',
+    guide: 'Pemandu Wisata',
+    dive: 'Selam & Olahraga',
+    craft: 'Kerajinan & Toko',
+    transport: 'Transportasi',
     tripsTaken: 'Perjalanan',
     saved: 'Tersimpan',
     total: 'total',
@@ -137,9 +147,15 @@ const t: Record<Lang, any> = {
     moreAvailable: 'tempat lain untuk ditemukan',
     localBusinesses: 'Bisnis Lokal',
     businessesAvailable: 'bisnis tersedia',
+    hotDeals: 'Penawaran Spesial',
+    hotDealsSub: 'Penawaran khusus dari bisnis lokal',
+    off: 'OFF',
+    validUntil: 'Berlaku hingga',
+    viewDeal: 'Lihat Penawaran',
     styleLabels: { adventure: 'Pencari Petualangan', culture: 'Penjelajah Budaya', nature: 'Pencinta Alam', culinary: 'Pencinta Kuliner' },
     barLabels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
     statusLabels: { confirmed: 'Terkonfirmasi', completed: 'Selesai', pending: 'Tertunda', cancelled: 'Dibatalkan' },
+    chatHint: 'Ada pertanyaan? Chat langsung!',
   },
 }
 
@@ -147,11 +163,12 @@ function CategoryIcon({ name, size = 16 }: { name: string; size?: number }) {
   const s = { width: size, height: size, stroke: 'currentColor', strokeWidth: 2, fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
   const icons: Record<string, ReactNode> = {
     all: <svg viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-    nature: <svg viewBox="0 0 24 24" {...s}><path d="M12 22c0-5 4-9 4-9s-4-3-4-9c0-5-4-3-4-3s4 3 4 9c0 5-4 9-4 9z"/><path d="M12 22c0-4-3-7-3-7s3-2 3-7c0-4 3-2 3-2s-3 2-3 7c0 5 3 7 3 7z"/></svg>,
-    culture: <svg viewBox="0 0 24 24" {...s}><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M8 10s1.5 2 4 2 4-2 4-2"/><path d="M9 14h.01M15 14h.01"/></svg>,
-    adventure: <svg viewBox="0 0 24 24" {...s}><path d="M12 22s-7-7.75-7-13c0-3.87 3.13-7 7-7s7 3.13 7 7c0 5.25-7 13-7 13z"/><circle cx="12" cy="9" r="2.5"/><path d="M7 16l3-2 2 3 3-5"/></svg>,
-    village: <svg viewBox="0 0 24 24" {...s}><path d="M3 21h18"/><path d="M5 21V7l7-5 7 5v14"/><path d="M9 21v-8a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v8"/></svg>,
-    coastal: <svg viewBox="0 0 24 24" {...s}><path d="M12 22c4.97 0 9-4.03 9-9V7c0-3.5-3.5-6-9-6S3 3.5 3 7v6c0 4.97 4.03 9 9 9z"/><path d="M2 12h20"/><path d="M12 2v20"/></svg>,
+    food: <svg viewBox="0 0 24 24" {...s}><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M5 11v11"/><path d="M19 2v20"/><path d="M19 2h-3a4 4 0 0 0-4 4v6c0 1.1.9 2 2 2h5"/></svg>,
+    stay: <svg viewBox="0 0 24 24" {...s}><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 21v-6h6v6"/><path d="M9 8h.01M15 8h.01"/></svg>,
+    guide: <svg viewBox="0 0 24 24" {...s}><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>,
+    dive: <svg viewBox="0 0 24 24" {...s}><path d="M2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 17c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M12 7l3-3"/><circle cx="15" cy="4" r="1"/></svg>,
+    craft: <svg viewBox="0 0 24 24" {...s}><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>,
+    transport: <svg viewBox="0 0 24 24" {...s}><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M5 8V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg>,
   }
   return icons[name] || icons.all
 }
@@ -173,6 +190,69 @@ function matchScore(dest: any, prefs: any): number {
   return score
 }
 
+function ChatIconWithTooltip({ onClick, size, svgSize, hint, absoluteClass, parentHovered }: { onClick: (e: React.MouseEvent) => void; size: number; svgSize: number; hint: string; absoluteClass?: string; parentHovered?: boolean }) {
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+  const ref = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (parentHovered && ref.current) {
+      const r = ref.current.getBoundingClientRect()
+      setPos({ top: r.top - 36, left: r.left + r.width / 2 })
+    }
+  }, [parentHovered])
+
+  const show = !!parentHovered
+
+  return (
+    <>
+      <button
+        ref={ref}
+        onClick={onClick}
+        className={`rounded-full flex items-center justify-center border-0 cursor-pointer ${absoluteClass || ''}`}
+        style={{
+          width: size,
+          height: size,
+          background: '#3b82f6',
+          position: absoluteClass ? 'absolute' : 'relative',
+          transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transform: show ? 'scale(1.25)' : 'scale(1)',
+          boxShadow: show ? '0 4px 14px rgba(59,130,246,0.5)' : 'none',
+        }}
+      >
+        <svg width={svgSize} height={svgSize} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      {show && (
+        <div style={{
+          position: 'fixed',
+          top: pos.top,
+          left: pos.left,
+          transform: 'translateX(-50%)',
+          background: '#1e293b',
+          color: 'white',
+          fontSize: 11,
+          fontWeight: 600,
+          whiteSpace: 'nowrap',
+          padding: '5px 10px',
+          borderRadius: 8,
+          zIndex: 9999,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+          pointerEvents: 'none',
+        }}>
+          {hint}
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            border: '5px solid transparent',
+            borderTopColor: '#1e293b',
+          }} />
+        </div>
+      )}
+    </>
+  )
+}
+
 export default function TouristDashboard() {
   const navigate = useNavigate()
   const { lang } = useLang()
@@ -183,6 +263,7 @@ export default function TouristDashboard() {
   const [stats, setStats] = useState<any>(null)
   const [destinations, setDestinations] = useState<any[]>([])
   const [bookings, setBookings] = useState<any[]>([])
+  const [promotions, setPromotions] = useState<any[]>([])
 
   const styleLabel: Record<string, string> = txt.styleLabels
 
@@ -192,14 +273,15 @@ export default function TouristDashboard() {
   const categoryMatches = (dest: any, filter: string) => {
     if (filter === 'all') return true
     const cat = (dest.category || '').toLowerCase()
-    if (filter === 'nature') return cat.includes('nature') || cat.includes('natural')
-    if (filter === 'culture') return cat.includes('culture') || cat.includes('cultural')
-    if (filter === 'adventure') return cat.includes('adventure') || cat.includes('diving') || cat.includes('hiking') || cat.includes('trek')
-    if (filter === 'village') return cat.includes('village')
-    if (filter === 'coastal') return cat.includes('coastal') || cat.includes('beach') || cat.includes('sea') || cat.includes('island')
+    if (filter === 'food') return cat.includes('restaurant') || cat.includes('cafe') || cat.includes('food')
+    if (filter === 'stay') return cat.includes('hotel') || cat.includes('homestay') || cat.includes('stay')
+    if (filter === 'guide') return cat.includes('tour') || cat.includes('guide')
+    if (filter === 'dive') return cat.includes('dive') || cat.includes('water') || cat.includes('sport')
+    if (filter === 'craft') return cat.includes('craft') || cat.includes('souvenir') || cat.includes('shop')
+    if (filter === 'transport') return cat.includes('transport')
     return false
   }
-  const filteredDestinations = destinations.filter(d => categoryMatches(d, activeCategory))
+  const filteredDestinations = destinations.filter(d => d.isBusiness && categoryMatches(d, activeCategory))
 
   const goToItem = (item: any) => {
     if (item.isBusiness) {
@@ -208,6 +290,16 @@ export default function TouristDashboard() {
     } else {
       navigate(`/destination/${item.id}`)
     }
+  }
+
+  const [chatTarget, setChatTarget] = useState<{ bizId: number; bizName: string } | null>(null)
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+
+  const handleChatWithBusiness = async (e: React.MouseEvent, item: any) => {
+    e.stopPropagation()
+    if (!item.isBusiness) return
+    const bizId = parseInt(String(item.id).replace('biz-', ''))
+    setChatTarget({ bizId, bizName: item.name })
   }
 
   useEffect(() => {
@@ -220,8 +312,10 @@ export default function TouristDashboard() {
       api.getDestinations(),
       api.getBookings(),
       api.getBusinesses(),
-    ]).then(([dash, dests, bkgs, bizs]) => {
+      api.getPromotions(),
+    ]).then(([dash, dests, bkgs, bizs, promos]) => {
       setStats(dash)
+      setPromotions(promos.promotions || [])
       const bizList = (bizs.businesses || []).filter((b: any) => b.status === 'approved').map((b: any) => ({
         ...b,
         id: `biz-${b.id}`,
@@ -340,27 +434,57 @@ export default function TouristDashboard() {
                 </div>
                 <div className="space-y-0">
                   {(filteredDestinations || []).slice(3, 6).map((p, i, arr) => (
-                    <div key={i}>
-                      <div className="flex items-center gap-3 py-3 cursor-pointer" onClick={() => goToItem(p)}>
-                        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-xs font-bold text-white"
-                          style={{ background: A }}>
-                          {p.name?.charAt(0) || 'D'}
+                    <div key={i} className="group relative cursor-pointer transition-all hover:bg-gray-50 rounded-xl"
+                      onMouseEnter={() => setHoveredCard(p.id)}
+                      onMouseLeave={() => setHoveredCard(null)}
+                      onClick={() => goToItem(p)}>
+                      <div className="flex items-center gap-3 p-3 min-w-0">
+                        {/* Thumbnail */}
+                        <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 relative shadow-sm">
+                          {p.image_url ? (
+                            <img src={p.image_url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white" style={{ background: A }}>
+                              {p.name?.charAt(0) || 'B'}
+                            </div>
+                          )}
+                          <div className="absolute top-0.5 left-0.5">
+                            <span className="text-[8px] px-1 py-0.5 rounded-full font-bold bg-white/90 backdrop-blur-sm" style={{ color: A }}>{p.category?.charAt(0).toUpperCase()}</span>
+                          </div>
                         </div>
+                        {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold truncate" style={{ color: TEXT }}>{p.name}</p>
-                          <p className="flex items-center gap-1 text-xs" style={{ color: SUBTLE }}>
-                            {p.city} ·
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                            {p.rating}
-                          </p>
+                          <p className="text-sm font-bold leading-tight mb-0.5" style={{ color: TEXT }}>{p.name}</p>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs min-w-0" style={{ color: SUBTLE }}>
+                            <span className="truncate">{p.city}</span>
+                            <span className="flex items-center gap-0.5 flex-shrink-0" style={{ color: '#f59e0b' }}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                              {p.rating}
+                            </span>
+                            {p.price > 0 && (
+                              <span className="font-semibold truncate" style={{ color: A }}>Rp {Number(p.price).toLocaleString('id-ID')}</span>
+                            )}
+                          </div>
+                          {p.isBusiness && p.business_hours && (
+                            <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#0d9488' }}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                              {compactHours(p.business_hours, lang)}
+                            </p>
+                          )}
                         </div>
-                        <button onClick={(e) => { e.stopPropagation(); toggleSaved(p.id) }}
-                          className="w-7 h-7 rounded-full flex items-center justify-center border-0 cursor-pointer flex-shrink-0 transition-all"
-                          style={{ background: saved.includes(p.id) ? '#f43f5e' : AL }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill={saved.includes(p.id) ? 'white' : 'none'} stroke={saved.includes(p.id) ? 'white' : A} strokeWidth="2">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                          </svg>
-                        </button>
+                        {/* Actions */}
+                        <div className="flex flex-col gap-1.5 flex-shrink-0 w-8 items-center">
+                          <button onClick={(e) => { e.stopPropagation(); toggleSaved(p.id) }}
+                            className="w-7 h-7 rounded-full flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
+                            style={{ background: saved.includes(p.id) ? '#f43f5e' : AL }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill={saved.includes(p.id) ? 'white' : 'none'} stroke={saved.includes(p.id) ? 'white' : A} strokeWidth="2">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                          </button>
+                          {p.isBusiness && (
+                            <ChatIconWithTooltip onClick={(e) => handleChatWithBusiness(e, p)} size={28} svgSize={12} hint={txt.chatHint} parentHovered={hoveredCard === p.id} />
+                          )}
+                        </div>
                       </div>
                       {i < arr.length - 1 && <div style={{ borderTop: `1px solid ${BORDER}` }} />}
                     </div>
@@ -380,7 +504,9 @@ export default function TouristDashboard() {
 
             {/* ── Hero Full Bleed ── */}
             <div className="relative overflow-hidden cursor-pointer group" style={{ height: 240 }}
-              onClick={() => filteredDestinations[0]?.id && goToItem(filteredDestinations[0])}>
+              onClick={() => filteredDestinations[0]?.id && goToItem(filteredDestinations[0])}
+              onMouseEnter={() => setHoveredCard(filteredDestinations[0]?.id ?? null)}
+              onMouseLeave={() => setHoveredCard(null)}>
               <img src={filteredDestinations[0]?.image_url || '/img/Danau Tanralili.jpg'} alt="hero"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0" style={{
@@ -421,6 +547,9 @@ export default function TouristDashboard() {
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                     </svg>
                   </button>
+                  {filteredDestinations[0]?.isBusiness && (
+                    <ChatIconWithTooltip onClick={(e) => { e.stopPropagation(); filteredDestinations[0] && handleChatWithBusiness(e, filteredDestinations[0]) }} size={42} svgSize={18} hint={txt.chatHint} parentHovered={hoveredCard === (filteredDestinations[0]?.id ?? null)} />
+                  )}
                 </div>
               </div>
             </div>
@@ -431,11 +560,12 @@ export default function TouristDashboard() {
               <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
                 {[
                   { id: 'all', label: txt.all },
-                  { id: 'nature', label: txt.nature },
-                  { id: 'culture', label: txt.culture },
-                  { id: 'adventure', label: txt.adventure },
-                  { id: 'village', label: txt.village },
-                  { id: 'coastal', label: txt.coastal },
+                  { id: 'food', label: txt.food },
+                  { id: 'stay', label: txt.stay },
+                  { id: 'guide', label: txt.guide },
+                  { id: 'dive', label: txt.dive },
+                  { id: 'craft', label: txt.craft },
+                  { id: 'transport', label: txt.transport },
                 ].map(c => (
                   <button key={c.id} onClick={() => setActiveCategory(c.id)}
                     className="flex items-center gap-1.5 flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border-0 cursor-pointer transition-all"
@@ -539,7 +669,9 @@ export default function TouristDashboard() {
                   {/* Big card spans 2 rows */}
                   {filteredDestinations[0] && (
                   <div className="rounded-2xl overflow-hidden cursor-pointer group relative" style={{ gridRow: 'span 2' }}
-                    onClick={() => goToItem(filteredDestinations[0])}>
+                    onClick={() => goToItem(filteredDestinations[0])}
+                    onMouseEnter={() => setHoveredCard(filteredDestinations[0]?.id ?? null)}
+                    onMouseLeave={() => setHoveredCard(null)}>
                     <img src={filteredDestinations[0].image_url || '/img/Danau Tanralili.jpg'} alt=""
                       className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-105" />
                     <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%)' }} />
@@ -580,12 +712,17 @@ export default function TouristDashboard() {
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                       </svg>
                     </button>
+                    {filteredDestinations[0]?.isBusiness && (
+                      <ChatIconWithTooltip onClick={(e) => handleChatWithBusiness(e, filteredDestinations[0])} size={34} svgSize={16} hint={txt.chatHint} absoluteClass="top-3 right-12" parentHovered={hoveredCard === (filteredDestinations[0]?.id ?? null)} />
+                    )}
                   </div>
                   )}
                   {/* Small cards */}
                   {(filteredDestinations[1] || filteredDestinations[2]) && [filteredDestinations[1], filteredDestinations[2]].filter(Boolean).map((c, i) => (
                     <div key={i} className="rounded-2xl overflow-hidden cursor-pointer group relative"
-                      onClick={() => goToItem(c)}>
+                      onClick={() => goToItem(c)}
+                      onMouseEnter={() => setHoveredCard(c.id)}
+                      onMouseLeave={() => setHoveredCard(null)}>
                       <img src={c.image_url || '/img/Desa_Bonto_Manai.jpg'} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)' }} />
                       <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
@@ -604,6 +741,9 @@ export default function TouristDashboard() {
                           {c.rating}
                         </p>
                       </div>
+                      {c.isBusiness && (
+                        <ChatIconWithTooltip onClick={(e) => handleChatWithBusiness(e, c)} size={30} svgSize={14} hint={txt.chatHint} absoluteClass="top-2.5 right-2.5" parentHovered={hoveredCard === c.id} />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -621,12 +761,17 @@ export default function TouristDashboard() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {filteredDestinations.slice(6).map((d, i) => (
                     <div key={i} className="rounded-2xl overflow-hidden cursor-pointer group relative h-[140px]"
-                      onClick={() => goToItem(d)}>
+                      onClick={() => goToItem(d)}
+                      onMouseEnter={() => setHoveredCard(d.id)}
+                      onMouseLeave={() => setHoveredCard(null)}>
                       <img src={d.image_url || '/img/Desa_Bonto_Manai.jpg'} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 55%)' }} />
                       <div className="absolute top-2 left-2">
                         <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: d.isBusiness ? '#0d9488' : A, color: 'white', fontSize: 10 }}>{d.category?.toUpperCase()}</span>
                       </div>
+                      {d.isBusiness && (
+                        <ChatIconWithTooltip onClick={(e) => handleChatWithBusiness(e, d)} size={30} svgSize={14} hint={txt.chatHint} absoluteClass="top-2 right-2 z-10" parentHovered={hoveredCard === d.id} />
+                      )}
                       <div className="absolute bottom-0 left-0 right-0 p-2.5">
                         <p className="text-white font-bold text-xs leading-tight truncate">{d.name}</p>
                         <div className="flex items-center justify-between mt-0.5">
@@ -634,6 +779,73 @@ export default function TouristDashboard() {
                           {Number(d.price) > 0 && (
                             <p className="text-xs font-bold" style={{ color: A }}>Rp {Number(d.price).toLocaleString('id-ID')}</p>
                           )}
+                        </div>
+                        {d.isBusiness && d.business_hours && (
+                          <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg mt-1" style={{ background: 'rgba(255,255,255,0.3)', color: 'white', backdropFilter: 'blur(8px)' }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            {compactHours(d.business_hours, lang)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              )}
+
+              {/* ── Hot Deals ── */}
+              {promotions.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-black text-base flex items-center gap-2" style={{ color: TEXT, letterSpacing: '-0.02em' }}>
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg text-white text-xs" style={{ background: '#ef4444' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                      </span>
+                      {txt.hotDeals}
+                    </h3>
+                    <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{txt.hotDealsSub}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {promotions.slice(0, 4).map((p, i) => (
+                    <div key={i} className="rounded-2xl overflow-hidden cursor-pointer transition-all hover:translate-y-[-2px] hover:shadow-md"
+                      style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: shadow }}
+                      onClick={() => navigate(`/business/${p.business_id}`)}>
+                      <div className="flex items-stretch">
+                        {/* Image */}
+                        <div className="w-28 flex-shrink-0 relative overflow-hidden" style={{ background: AL }}>
+                          {p.image_url ? (
+                            <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                          ) : p.business_image_url ? (
+                            <img src={p.business_image_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-2xl font-black" style={{ color: A }}>
+                              {p.business_name?.charAt(0) || 'B'}
+                            </div>
+                          )}
+                          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%)' }} />
+                          <div className="absolute bottom-1.5 left-1.5 px-2 py-1 rounded-lg text-xs font-black text-white flex items-center gap-1" style={{ background: '#ef4444', boxShadow: '0 2px 6px rgba(239,68,68,0.5)' }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            {p.discount_type === 'percent' ? `${p.discount_value}% OFF` : `Rp${Number(p.discount_value).toLocaleString('id-ID')}`}
+                          </div>
+                        </div>
+                        {/* Content */}
+                        <div className="flex-1 p-3 min-w-0 flex flex-col justify-between">
+                          <div>
+                            <p className="text-[11px] font-semibold truncate" style={{ color: A }}>{p.business_name}</p>
+                            <p className="text-sm font-bold leading-snug mt-0.5" style={{ color: TEXT }}>{p.title}</p>
+                            {p.description && <p className="text-xs mt-1 line-clamp-2" style={{ color: MUTED }}>{p.description}</p>}
+                          </div>
+                          <div className="flex items-end justify-between mt-2 gap-2">
+                            <span className="text-[10px] flex items-center gap-1 flex-shrink-0" style={{ color: SUBTLE }}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                              {txt.validUntil} {p.end_date}
+                            </span>
+                            {p.original_price && (
+                              <span className="text-xs line-through flex-shrink-0" style={{ color: SUBTLE }}>Rp {Number(p.original_price).toLocaleString('id-ID')}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -658,40 +870,52 @@ export default function TouristDashboard() {
                       <p className="text-sm" style={{ color: SUBTLE }}>{txt.noBookings}</p>
                     </div>
                   )}
-                  {bookings.map((t, i) => (
-                    <div key={i} className="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all hover:translate-y-[-1px]"
+                  {bookings.map((t, i) => {
+                    const statusStyle: Record<string, { bg: string; fg: string; icon: ReactNode }> = {
+                      confirmed: { bg: '#dcfce7', fg: '#15803d', icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg> },
+                      completed: { bg: '#dbeafe', fg: '#1d4ed8', icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg> },
+                      pending: { bg: '#ffedd5', fg: '#c2410c', icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
+                      cancelled: { bg: '#fee2e2', fg: '#dc2626', icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> },
+                    }
+                    const st = statusStyle[t.status] || statusStyle.pending
+                    return (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all hover:translate-y-[-1px] hover:shadow-md"
                       style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: shadow }}>
-                      <div className="relative flex-shrink-0">
-                        <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center text-xs font-bold text-white"
-                          style={{ background: A }}>
-                          {t.destination_name?.charAt(0) || t.business_name?.charAt(0) || 'B'}
-                        </div>
+                      <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 relative">
+                        {t.image_url ? (
+                          <img src={t.image_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-lg font-black text-white" style={{ background: `linear-gradient(135deg, ${A}, #0891b2)` }}>
+                            {t.destination_name?.charAt(0) || t.business_name?.charAt(0) || 'B'}
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm" style={{ color: TEXT }}>{t.destination_name || t.business_name || 'Booking'}</p>
-                        <p className="text-xs mt-0.5" style={{ color: MUTED }}>{txt.status}: {t.status}</p>
-                        <div className="flex items-center gap-3 mt-2">
-                          <span className="flex items-center gap-1 text-xs" style={{ color: SUBTLE }}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            {t.booking_date}
-                          </span>
-                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                            style={{ background: t.status==='confirmed'?'#dcfce7':t.status==='completed'?'#dbeafe':'#ffedd5', color: t.status==='confirmed'?'#15803d':t.status==='completed'?'#1d4ed8':'#c2410c' }}>
-                            {t.status}
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-sm truncate" style={{ color: TEXT }}>{t.destination_name || t.business_name || 'Booking'}</p>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 flex-shrink-0" style={{ background: st.bg, color: st.fg }}>
+                            {st.icon}
+                            {txt.statusLabels?.[t.status] || t.status}
                           </span>
                         </div>
+                        <span className="flex items-center gap-1 text-xs mt-1.5" style={{ color: SUBTLE }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          {t.booking_date}
+                        </span>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-black text-base" style={{ color: TEXT }}>Rp {Number(t.total_price || 0).toLocaleString('id-ID')}</p>
-                        <button className="mt-2 text-xs px-3 py-1 rounded-full font-semibold border-0 cursor-pointer"
+                        <button className="mt-2 text-xs px-3 py-1.5 rounded-full font-semibold border-0 cursor-pointer transition-all hover:opacity-80"
                           style={{ background: AL, color: A }}>{txt.details}</button>
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
 
             </div>
+    <ChatWidget businessId={chatTarget?.bizId} businessName={chatTarget?.bizName} autoOpen={!!chatTarget} onClose={() => setChatTarget(null)} />
     </TouristLayout>
   )
 }

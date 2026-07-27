@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, getStoredUser } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import { toggleSavedId, getSavedIds } from '../lib/saved'
+import { formatBusinessHours } from '../components/BusinessHoursEditor'
+import ChatWidget from '../components/ChatWidget'
 
 const A = '#0d9488'
 const AL = '#f0fdfa'
@@ -27,12 +29,18 @@ const t: Record<Lang, any> = {
     category: 'Category',
     phone: 'Phone',
     description: 'Description',
+    businessHours: 'Business Hours',
     owner: 'Owner',
     price: 'Price',
     rating: 'Rating',
     reviews: 'reviews',
     notFound: 'Business not found',
     contactWhatsApp: 'Contact via WhatsApp',
+    chat: 'Chat with Business',
+    promotions: 'Special Offers',
+    off: 'OFF',
+    validUntil: 'Valid until',
+    noPromotions: 'No active promotions',
   },
   id: {
     back: 'Kembali',
@@ -46,12 +54,18 @@ const t: Record<Lang, any> = {
     category: 'Kategori',
     phone: 'Telepon',
     description: 'Deskripsi',
+    businessHours: 'Jam Operasional',
     owner: 'Pemilik',
     price: 'Harga',
     rating: 'Rating',
     reviews: 'ulasan',
     notFound: 'Bisnis tidak ditemukan',
     contactWhatsApp: 'Hubungi via WhatsApp',
+    chat: 'Chat dengan Bisnis',
+    promotions: 'Penawaran Spesial',
+    off: 'OFF',
+    validUntil: 'Berlaku hingga',
+    noPromotions: 'Tidak ada promosi aktif',
   },
 }
 
@@ -69,6 +83,7 @@ export default function BusinessDetailPage() {
   const [booking, setBooking] = useState(false)
   const [booked, setBooked] = useState(false)
   const [bookingError, setBookingError] = useState('')
+  const [promotions, setPromotions] = useState<any[]>([])
 
   useEffect(() => {
     if (!currentUser) {
@@ -81,11 +96,25 @@ export default function BusinessDetailPage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
+    api.getPromotions().then((r: any) => {
+      const all = r.promotions || []
+      setPromotions(all.filter((p: any) => p.business_id === Number(id) && p.status === 'approved'))
+    }).catch(() => {})
   }, [navigate, id])
 
   const handleSave = () => {
     if (!biz) return
     setSaved(toggleSavedId(biz.id))
+  }
+
+  const handleStartChat = async () => {
+    if (!biz) return
+    try {
+      await api.startConversation(biz.id)
+      navigate('/tourist/messages')
+    } catch {
+      navigate('/tourist/messages')
+    }
   }
 
   const handleBooking = async () => {
@@ -181,6 +210,61 @@ export default function BusinessDetailPage() {
             </div>
           )}
 
+          {biz.business_hours && (() => {
+            const days = formatBusinessHours(biz.business_hours, lang)
+            const hasHours = days.some(d => !d.closed)
+            if (!hasHours) return null
+            return (
+              <div className="mb-6">
+                <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: SUBTLE }}>{txt.businessHours}</p>
+                <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${BORDER}` }}>
+                  {days.map((d, i) => (
+                    <div key={i} className="flex items-center justify-between px-4 py-2.5" style={{ background: i % 2 === 0 ? '#fff' : '#f9fafb', borderBottom: i < days.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
+                      <span className="text-sm font-semibold" style={{ color: TEXT }}>{d.day}</span>
+                      {d.closed ? (
+                        <span className="text-xs font-semibold" style={{ color: '#dc2626' }}>Closed</span>
+                      ) : (
+                        <span className="text-sm" style={{ color: MUTED }}>
+                          {d.shifts.map(s => `${s.open} - ${s.close}`).join(', ')}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {promotions.length > 0 && (
+            <div className="mb-6">
+              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: SUBTLE }}>{txt.promotions}</p>
+              <div className="space-y-3">
+                {promotions.map((p, i) => (
+                  <div key={i} className="rounded-xl overflow-hidden flex items-center gap-4" style={{ background: '#fff7ed', border: '1px solid #fed7aa' }}>
+                    {p.image_url && (
+                      <div className="flex-shrink-0 w-20 h-20" style={{ background: '#fed7aa' }}>
+                        <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <div className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center text-white font-black text-lg" style={{ background: '#ea580c' }}>
+                      {p.discount_type === 'percent' ? `${p.discount_value}%` : 'Rp'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold" style={{ color: '#c2410c' }}>{p.title}</p>
+                      {p.description && <p className="text-xs mt-0.5" style={{ color: '#9a3412' }}>{p.description}</p>}
+                      <div className="flex items-center gap-2 mt-1">
+                        {p.original_price && (
+                          <span className="text-xs line-through" style={{ color: SUBTLE }}>Rp {Number(p.original_price).toLocaleString('id-ID')}</span>
+                        )}
+                        <span className="text-xs font-semibold" style={{ color: '#c2410c' }}>{txt.validUntil} {p.end_date}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {biz.owner_name && (
             <div className="rounded-xl p-3 flex items-center gap-3 mb-6" style={{ background: AL }}>
               <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ background: A }}>
@@ -216,6 +300,8 @@ export default function BusinessDetailPage() {
           </a>
         </div>
       </div>
+
+      <ChatWidget businessId={biz.id} businessName={biz.business_name} />
     </div>
   )
 }

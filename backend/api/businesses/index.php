@@ -28,7 +28,7 @@ if ($method === 'POST') {
     $user = require_auth();
     $body = get_json_body();
 
-    $stmt = db()->prepare('INSERT INTO businesses (user_id, business_name, business_type, city, phone, description, price, nib) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt = db()->prepare('INSERT INTO businesses (user_id, business_name, business_type, city, phone, description, price, business_hours, nib) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
     $stmt->execute([
         $user['user_id'],
         trim($body['business_name'] ?? ''),
@@ -37,6 +37,7 @@ if ($method === 'POST') {
         trim($body['phone'] ?? ''),
         $body['description'] ?? null,
         (float)($body['price'] ?? 0),
+        isset($body['business_hours']) ? json_encode($body['business_hours']) : null,
         $body['nib'] ?? null,
     ]);
     $id = (int) db()->lastInsertId();

@@ -29,7 +29,7 @@ if ($method === 'PUT') {
     // Full business update (from edit form)
     elseif (array_key_exists('business_name', $body)) {
         if ($user['role'] === 'admin') {
-            $stmt = db()->prepare('UPDATE businesses SET business_name=?, business_type=?, city=?, phone=?, description=?, price=?, nib=?, status=? WHERE id = ?');
+            $stmt = db()->prepare('UPDATE businesses SET business_name=?, business_type=?, city=?, phone=?, description=?, price=?, business_hours=?, nib=?, status=? WHERE id = ?');
             $stmt->execute([
                 trim($body['business_name'] ?? ''),
                 trim($body['business_type'] ?? ''),
@@ -37,12 +37,13 @@ if ($method === 'PUT') {
                 trim($body['phone'] ?? ''),
                 $body['description'] ?? null,
                 (float)($body['price'] ?? 0),
+                array_key_exists('business_hours', $body) ? json_encode($body['business_hours']) : null,
                 $body['nib'] ?? null,
                 $body['status'] ?? 'pending',
                 $id,
             ]);
         } else {
-            $stmt = db()->prepare('UPDATE businesses SET business_name=?, business_type=?, city=?, phone=?, description=?, price=?, nib=? WHERE id=? AND user_id=?');
+            $stmt = db()->prepare('UPDATE businesses SET business_name=?, business_type=?, city=?, phone=?, description=?, price=?, business_hours=?, nib=? WHERE id=? AND user_id=?');
             $stmt->execute([
                 trim($body['business_name'] ?? ''),
                 trim($body['business_type'] ?? ''),
@@ -50,6 +51,7 @@ if ($method === 'PUT') {
                 trim($body['phone'] ?? ''),
                 $body['description'] ?? null,
                 (float)($body['price'] ?? 0),
+                array_key_exists('business_hours', $body) ? json_encode($body['business_hours']) : null,
                 $body['nib'] ?? null,
                 $id,
                 $user['user_id'],
@@ -68,13 +70,17 @@ if ($method === 'PUT') {
 }
 
 if ($method === 'DELETE') {
-    if ($user['role'] === 'admin') {
-        $stmt = db()->prepare('DELETE FROM businesses WHERE id = ?');
-        $stmt->execute([$id]);
-    } else {
-        $stmt = db()->prepare('DELETE FROM businesses WHERE id = ? AND user_id = ?');
-        $stmt->execute([$id, $user['user_id']]);
+    $check = db()->prepare('SELECT id, user_id FROM businesses WHERE id = ?');
+    $check->execute([$id]);
+    $biz = $check->fetch();
+    if (!$biz) {
+        json_response(404, ['error' => 'Business not found']);
     }
+    if ($user['role'] !== 'admin' && (int)$biz['user_id'] !== (int)$user['user_id']) {
+        json_response(403, ['error' => 'Not authorized to delete this business']);
+    }
+    $stmt = db()->prepare('DELETE FROM businesses WHERE id = ?');
+    $stmt->execute([$id]);
     json_response(200, ['message' => 'Deleted']);
 }
 

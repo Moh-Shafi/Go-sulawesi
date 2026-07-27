@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, getStoredUser } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
+import ChatWidget from '../components/ChatWidget'
 import BusinessLayout from '../components/BusinessLayout'
+import BusinessHoursEditor, { defaultBusinessHours, compactHours } from '../components/BusinessHoursEditor'
 
 const A = '#ea580c'
 const AL = '#fff7ed'
@@ -195,6 +197,7 @@ export default function BusinessDashboard() {
   const [formError, setFormError] = useState('')
   const [formSuccess, setFormSuccess] = useState('')
   const [form, setForm] = useState({ business_name: '', business_type: '', city: '', phone: '', description: '', price: '', status: 'pending' })
+  const [businessHours, setBusinessHours] = useState<any>(defaultBusinessHours())
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
   const [imageUploading, setImageUploading] = useState(false)
@@ -216,6 +219,7 @@ export default function BusinessDashboard() {
   const openCreate = () => {
     setEditingBusiness(null)
     setForm({ business_name: '', business_type: '', city: '', phone: '', description: '', price: '', status: 'pending' })
+    setBusinessHours(defaultBusinessHours())
     setImageFile(null)
     setImagePreview('')
     setImageError('')
@@ -238,6 +242,7 @@ export default function BusinessDashboard() {
       price: b.price != null ? String(b.price) : '',
       status: b.status || 'pending',
     })
+    setBusinessHours(b.business_hours || defaultBusinessHours())
     setImageFile(null)
     setImagePreview(b.image_url || '')
     setImageError('')
@@ -281,7 +286,7 @@ export default function BusinessDashboard() {
     setFormSuccess('')
     try {
       let bizId = editingBusiness?.id
-      const payload = { ...form, price: Number(form.price) || 0 }
+      const payload = { ...form, price: Number(form.price) || 0, business_hours: businessHours }
       if (editingBusiness) {
         await api.updateBusiness(editingBusiness.id, payload)
       } else {
@@ -599,6 +604,12 @@ export default function BusinessDashboard() {
                   {businesses[0]?.phone || 'No phone'}
                 </span>
                 <span className="text-xs font-bold" style={{ color: '#fbbf24' }}>★ {businesses[0]?.rating || '0.0'}</span>
+                {businesses[0]?.business_hours && (
+                  <span className="text-sm font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.25)', color: 'white', backdropFilter: 'blur(8px)' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {compactHours(businesses[0].business_hours, lang)}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -616,6 +627,12 @@ export default function BusinessDashboard() {
                 <p className="text-white font-bold text-sm leading-tight">{l.business_name}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>{l.city}</span>
+                  {l.business_hours && (
+                    <span className="text-xs font-bold flex items-center gap-1 px-2 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.25)', color: 'white', backdropFilter: 'blur(8px)' }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      {compactHours(l.business_hours, lang)}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -677,7 +694,7 @@ export default function BusinessDashboard() {
     </div>
     {showModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowModal(false)}>
-        <div className="rounded-2xl p-6 w-full max-w-lg" style={{ background: CARD }} onClick={e => e.stopPropagation()}>
+        <div className="rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ background: CARD }} onClick={e => e.stopPropagation()}>
           <h3 className="text-lg font-bold mb-4" style={{ color: TEXT }}>{editingBusiness ? txt.editListingTitle : txt.createListingTitle}</h3>
           {formError && (
             <div className="rounded-xl px-4 py-3 mb-4 text-sm font-semibold" style={{ background: '#fef2f2', color: '#dc2626', border: `1px solid #fecaca` }}>{formError}</div>
@@ -749,6 +766,7 @@ export default function BusinessDashboard() {
                 <p className="text-xs mt-2" style={{ color: A }}>{txt.uploading}</p>
               )}
             </div>
+            <BusinessHoursEditor value={businessHours} onChange={setBusinessHours} lang={lang} />
             <div className="flex gap-3 pt-2">
               <button type="submit" disabled={formSaving} className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:opacity-90 disabled:opacity-60" style={{ background: A }}>
                 {formSaving ? txt.saving : txt.save}
@@ -761,6 +779,7 @@ export default function BusinessDashboard() {
         </div>
       </div>
     )}
+    <ChatWidget />
     </BusinessLayout>
   )
 }

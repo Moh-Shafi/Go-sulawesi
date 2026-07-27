@@ -67,10 +67,7 @@ const t: Record<Lang, any> = {
   },
 }
 
-const DAYS: Record<Lang, string[]> = {
-  en: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'],
-  id: ['Hari 1', 'Hari 2', 'Hari 3', 'Hari 4', 'Hari 5'],
-}
+const dayLabel = (lang: Lang, n: number) => lang === 'id' ? `Hari ${n}` : `Day ${n}`
 
 const FALLBACK = [
   { id: 1, name: 'Danau Tanralili', category: 'Nature', city: 'Gowa', price: 850000, rating: 4.9, image_url: '/img/Danau Tanralili.jpg' },
@@ -87,9 +84,8 @@ export default function ItineraryBuilder() {
   const navigate = useNavigate()
   const { lang, setLang } = useLang()
   const txt = t[lang]
-  const dayLabels = DAYS[lang]
   const [allItems, setAllItems] = useState<Dest[]>(FALLBACK)
-  const [numDays, setNumDays] = useState(3)
+  const [numDays, setNumDays] = useState(1)
   const [plan, setPlan] = useState<Record<number, Dest[]>>({ 0: [], 1: [], 2: [], 3: [], 4: [] })
   const [selectDest, setSelectDest] = useState<Dest | null>(null)
   const [shared, setShared] = useState(false)
@@ -153,8 +149,8 @@ export default function ItineraryBuilder() {
   }
 
   const shareText = () => {
-    const lines = dayLabels.slice(0, numDays).map((day, i) =>
-      `${day}: ${plan[i]?.map(d => d.name).join(', ') || txt.freeDay}`
+    const lines = Array.from({ length: numDays }, (_, i) =>
+      `${dayLabel(lang, i + 1)}: ${plan[i]?.map(d => d.name).join(', ') || txt.freeDay}`
     ).join('\n')
     return `${txt.myItinerary}\n\n${lines}\n\n${txt.total}: Rp ${totalCost.toLocaleString('id-ID')}`
   }
@@ -183,17 +179,6 @@ export default function ItineraryBuilder() {
                 className="px-2.5 py-1 rounded-lg text-xs font-bold border-0 cursor-pointer transition-all"
                 style={{ background: lang === l ? A : 'transparent', color: lang === l ? 'white' : MUTED }}>
                 {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
-          {/* Day count selector */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs" style={{ color: MUTED }}>{txt.tripLength}</span>
-            {[3, 5].map(n => (
-              <button key={n} onClick={() => setNumDays(n)}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold border-0 cursor-pointer transition-all"
-                style={{ background: numDays === n ? A : '#f3f4f6', color: numDays === n ? 'white' : MUTED }}>
-                {n} {txt.days}
               </button>
             ))}
           </div>
@@ -274,10 +259,24 @@ export default function ItineraryBuilder() {
                 {txt.experiencesPlanned.replace('{count}', String(totalPlaces)).replace('{plural}', totalPlaces !== 1 ? 's' : '')} <strong style={{ color: A }}>Rp {totalCost.toLocaleString('id-ID')}</strong>
               </p>
             </div>
+            {/* Day count selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs" style={{ color: MUTED }}>{txt.tripLength}</span>
+              <button onClick={() => setNumDays(n => Math.max(1, n - 1))}
+                className="w-7 h-7 rounded-lg text-sm font-bold border-0 cursor-pointer transition-all flex items-center justify-center"
+                style={{ background: numDays > 1 ? AL : '#f3f4f6', color: numDays > 1 ? A : SUBTLE }}>−</button>
+              <span className="text-sm font-bold tabular-nums" style={{ color: TEXT, minWidth: 18, textAlign: 'center' }}>{numDays}</span>
+              <button onClick={() => setNumDays(n => Math.min(14, n + 1))}
+                className="w-7 h-7 rounded-lg text-sm font-bold border-0 cursor-pointer transition-all flex items-center justify-center"
+                style={{ background: numDays < 14 ? AL : '#f3f4f6', color: numDays < 14 ? A : SUBTLE }}>+</button>
+              <span className="text-xs" style={{ color: MUTED }}>{txt.days}</span>
+            </div>
           </div>
 
-          <div className="grid gap-4" style={{ gridTemplateColumns: numDays === 3 ? 'repeat(3, 1fr)' : 'repeat(3, 1fr)' }}>
-            {dayLabels.slice(0, numDays).map((day, idx) => (
+          <div className="grid gap-4" style={{ gridTemplateColumns: numDays <= 3 ? `repeat(${numDays}, 1fr)` : 'repeat(3, 1fr)' }}>
+            {Array.from({ length: numDays }, (_, idx) => {
+              const day = dayLabel(lang, idx + 1)
+              return (
               <div key={idx} className="rounded-2xl flex flex-col" style={{ background: CARD, border: `2px solid ${BORDER}`, minHeight: 220 }}>
                 {/* Day header */}
                 <div className="px-4 py-3 flex items-center justify-between rounded-t-2xl"
@@ -326,7 +325,8 @@ export default function ItineraryBuilder() {
                   </button>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Summary bar */}
@@ -337,7 +337,7 @@ export default function ItineraryBuilder() {
               <div className="flex-1">
                 <p className="text-sm font-black" style={{ color: TEXT }}>{txt.tripShaping}</p>
                 <p className="text-xs" style={{ color: MUTED }}>
-                  {txt.summary.replace('{count}', String(totalPlaces)).replace('{days}', String(dayLabels.slice(0, numDays).filter((_, i) => plan[i]?.length > 0).length))} Rp {totalCost.toLocaleString('id-ID')}
+                  {txt.summary.replace('{count}', String(totalPlaces)).replace('{days}', String(Array.from({ length: numDays }, (_, i) => i).filter(i => plan[i]?.length > 0).length))} Rp {totalCost.toLocaleString('id-ID')}
                 </p>
               </div>
               <button onClick={bookAll} disabled={booking || booked || totalPlaces === 0}
@@ -360,7 +360,8 @@ export default function ItineraryBuilder() {
             <p className="text-base font-black mb-1" style={{ color: TEXT }}>{txt.addToDay}</p>
             <p className="text-sm mb-4" style={{ color: MUTED }}>{selectDest.name}</p>
             <div className="grid grid-cols-3 gap-2 mb-4">
-              {dayLabels.slice(0, numDays).map((day, idx) => {
+              {Array.from({ length: numDays }, (_, idx) => {
+                const day = dayLabel(lang, idx + 1)
                 const already = plan[idx]?.find(d => d.id === selectDest.id)
                 return (
                   <button key={idx} onClick={() => !already && addToDay(idx, selectDest)}

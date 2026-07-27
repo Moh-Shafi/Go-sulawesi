@@ -49,6 +49,16 @@ const navMain = [
       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
     </svg>
   )},
+  { id: 'promotions', labelKey: 'promotions', path: '/business/promotions', icon: (_a: boolean) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+    </svg>
+  )},
+  { id: 'messages', labelKey: 'messages', path: '/business/messages', icon: (_a: boolean) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  )},
 ]
 
 const t: Record<Lang, any> = {
@@ -59,6 +69,8 @@ const t: Record<Lang, any> = {
     bookings: 'Bookings',
     earnings: 'Earnings',
     reviews: 'Reviews',
+    promotions: 'Promotions',
+    messages: 'Messages',
     recentCustomers: 'Recent Customers',
     settings: 'Settings',
     setting: 'Setting',
@@ -72,6 +84,8 @@ const t: Record<Lang, any> = {
     bookings: 'Pemesanan',
     earnings: 'Pendapatan',
     reviews: 'Ulasan',
+    promotions: 'Promosi',
+    messages: 'Pesan',
     recentCustomers: 'Klien Terbaru',
     settings: 'Pengaturan',
     setting: 'Pengaturan',

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, getStoredUser } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import AdminLayout from '../components/AdminLayout'
+import { formatBusinessHours, compactHours } from '../components/BusinessHoursEditor'
 
 const A = '#4f46e5'
 const AL = '#eef2ff'
@@ -298,16 +299,16 @@ export default function AdminBusinessesPage() {
           <table className="w-full min-w-[720px]">
             <thead>
               <tr style={{ background: BG }}>
-                {[txt.name, txt.type, txt.city, txt.contact, txt.price, txt.status, txt.submitted, txt.actions].map(h => (
+                {[txt.name, txt.type, txt.city, txt.contact, txt.price, 'Hours', txt.status, txt.submitted, txt.actions].map(h => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-semibold tracking-widest" style={{ color: SUBTLE }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="py-12 text-center text-sm" style={{ color: MUTED }}>Loading...</td></tr>
+                <tr><td colSpan={9} className="py-12 text-center text-sm" style={{ color: MUTED }}>Loading...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="py-12 text-center text-sm" style={{ color: MUTED }}>{txt.noBusinesses}</td></tr>
+                <tr><td colSpan={9} className="py-12 text-center text-sm" style={{ color: MUTED }}>{txt.noBusinesses}</td></tr>
               ) : filtered.map(b => (
                 <tr key={b.id} className="hover:bg-slate-50 transition-colors" style={{ borderTop: `1px solid ${BORDER}` }}>
                   <td className="px-5 py-4">
@@ -325,6 +326,7 @@ export default function AdminBusinessesPage() {
                   <td className="px-5 py-4 text-sm" style={{ color: MUTED }}>{b.city || '-'}</td>
                   <td className="px-5 py-4 text-sm" style={{ color: MUTED }}>{b.phone || '-'}</td>
                   <td className="px-5 py-4 text-sm font-semibold whitespace-nowrap" style={{ color: TEXT }}>{Number(b.price || 0) > 0 ? `Rp ${Number(b.price).toLocaleString('id-ID')}` : '-'}</td>
+                  <td className="px-5 py-4 text-xs whitespace-nowrap" style={{ color: MUTED }}>{b.business_hours ? compactHours(b.business_hours, lang) : '-'}</td>
                   <td className="px-5 py-4">{statusBadge(b.status)}</td>
                   <td className="px-5 py-4 text-sm whitespace-nowrap" style={{ color: MUTED }}>
                     {b.created_at ? new Date(b.created_at).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB') : '-'}
@@ -388,6 +390,24 @@ export default function AdminBusinessesPage() {
                   <p className="text-xs" style={{ color: SUBTLE }}>{txt.phone}: <span className="font-medium" style={{ color: TEXT }}>{selected.phone || '-'}</span></p>
                   <p className="text-xs" style={{ color: SUBTLE }}>{txt.price}: <span className="font-medium" style={{ color: TEXT }}>{Number(selected.price || 0) > 0 ? `Rp ${Number(selected.price).toLocaleString('id-ID')}` : '-'}</span></p>
                   <p className="text-xs" style={{ color: SUBTLE }}>{txt.description}: <span className="font-medium" style={{ color: TEXT }}>{selected.description || '-'}</span></p>
+                  {selected.business_hours && (() => {
+                    const days = formatBusinessHours(selected.business_hours, lang)
+                    const hasHours = days.some(d => !d.closed)
+                    if (!hasHours) return null
+                    return (
+                      <div className="mt-2">
+                        <p className="text-xs mb-1" style={{ color: SUBTLE }}>Business Hours:</p>
+                        <div className="space-y-0.5">
+                          {days.map((d, i) => (
+                            <p key={i} className="text-xs" style={{ color: TEXT }}>
+                              <span style={{ color: SUBTLE }}>{d.day}:</span>{' '}
+                              {d.closed ? <span style={{ color: '#dc2626' }}>Closed</span> : d.shifts.map(s => `${s.open}-${s.close}`).join(', ')}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </div>
                 <div className="flex gap-3">
                   {selected.status === 'pending' && (
