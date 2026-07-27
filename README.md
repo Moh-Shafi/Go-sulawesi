@@ -6,7 +6,7 @@
 
 ### GoSulawesi — Hidden Experiences Platform
 
-A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with authentic hidden destinations and local businesses across Sulawesi, Indonesia.
+A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with authentic hidden destinations and local businesses across Sulawesi, Indonesia. Includes a TikTok-style Reels video feed with background music, advanced analytics, real-time chat, and promotional campaigns.
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -106,7 +106,7 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 |---|---|---|
 | **PHP** | 8.3 | REST API with PDO and prepared statements |
 | **Apache** | 2.4 | Web server with `.htaccess` URL rewriting |
-| **MySQL** | 8.0 | Relational database (5 core tables) |
+| **MySQL** | 8.0 | Relational database (13 core tables) |
 | **PDO** | — | Secure parameterized queries |
 | **Custom JWT** | — | HMAC-SHA256 token auth (7-day expiry) |
 
@@ -128,15 +128,21 @@ Go-sulawesi/
        auth/          → login · register · me
        bookings/      → CRUD bookings
        businesses/    → CRUD local businesses
+       chat/          → real-time messaging (tourist ↔ business)
        dashboard/     → platform stats
        destinations/  → CRUD destinations
+       promotions/    → CRUD promotional campaigns
        reviews/       → reviews & ratings
        users/         → CRUD users + avatar upload
+       videos/        → Reels feed · upload · sounds · stats · likes · comments
        stats.php      → public stats (live counters)
     config.php         → DB config, CORS, auth helpers
     database/
        init.sql       → schema + seed destinations
-       seed_*.php     → extended seed data
+       videos.sql     → video tables schema
+       videos-v2.sql  → sounds + daily stats migration
+       migrate-*.php  → migration runners
+    sounds/            → 8 royalty-free MP3 tracks for Reels
     Dockerfile
 
   src/
@@ -146,6 +152,11 @@ Go-sulawesi/
        AdminLayout.tsx       → admin sidebar + top bar
        TouristBottomNav.tsx  → mobile nav (tourist)
        BusinessBottomNav.tsx → mobile nav (business)
+       ReelsNavIcon.tsx      → animated Reels video icon
+       VideoUploadModal.tsx  → video upload + sound picker with preview
+       ChatWidget.tsx        → floating chat widget
+       BusinessHoursEditor.tsx → business hours editor
+       RequireRole.tsx       → role-based access guard
    
     pages/
        LandingPage.tsx / LandingPageV2.tsx
@@ -160,7 +171,13 @@ Go-sulawesi/
        BusinessEarningsPage.tsx
        BusinessReviewsPage.tsx
        BusinessSettingsPage.tsx
+       BusinessMessagesPage.tsx   → business chat inbox
+       BusinessPromotionsPage.tsx → manage promotions
+       TouristMessagesPage.tsx    → tourist chat inbox
+       ChatPage.tsx               → full chat interface
+       VideoFeedPage.tsx          → TikTok-style Reels feed
        AdminDashboard.tsx
+       AdminPromotionsPage.tsx    → admin promotion management
    
     hooks/
        useLang.ts    → EN / ID language state
@@ -187,11 +204,20 @@ Go-sulawesi/
 ## Database Schema
 
 ```sql
-users        → id · name · email · password · role · avatar
-businesses   → id · user_id · business_name · type · city · status
-destinations → id · name · city · category · price · rating · lat/lng
-bookings     → id · user_id · destination_id · business_id · status · price
-reviews      → id · user_id · destination_id · business_id · rating · comment
+users           → id · name · email · password · role · avatar
+businesses      → id · user_id · business_name · type · city · status
+destinations    → id · name · city · category · price · rating · lat/lng
+bookings        → id · user_id · destination_id · business_id · status · price
+reviews         → id · user_id · destination_id · business_id · rating · comment
+videos          → id · user_id · video_url · thumbnail · caption · sound_id · shares · views
+video_sounds    → id · title · artist · audio_url · duration_sec · category · usage_count
+video_likes     → id · video_id · user_id
+video_saves     → id · video_id · user_id
+video_comments  → id · video_id · user_id · comment_text
+video_daily_stats → id · video_id · stat_date · views · likes · comments · shares
+conversations   → id · tourist_id · business_id · status
+messages        → id · conversation_id · sender_id · message_text
+promotions      → id · business_id · title · description · discount · start/end_date
 ```
 
 **User Roles:** `admin` · `tourist` · `local`  
@@ -265,11 +291,47 @@ POST   /api/users/:id/avatar
 
 GET    /api/stats               (public — live counters)
 GET    /api/dashboard           [admin]
+
+GET    /api/videos              (public feed · mine · saved)
+POST   /api/videos              [tourist/local] — upload with sound_id
+GET    /api/videos/:id          — single video + sound info
+DELETE /api/videos/:id          [owner]
+POST   /api/videos/:id/like     — toggle like
+POST   /api/videos/:id/save     — toggle save
+POST   /api/videos/:id/view     — count view
+POST   /api/videos/:id/share    — count share
+GET    /api/videos/:id/comments — list comments
+POST   /api/videos/:id/comments — add comment
+GET    /api/videos/sounds       — list sound library
+GET    /api/videos/stats        — analytics (mine · single video)
+
+GET    /api/chat/:conversationId  — list messages
+POST   /api/chat/:conversationId  — send message
+DELETE /api/chat/:conversationId  — delete message
+PUT    /api/chat/:conversationId  — close conversation
+
+GET    /api/promotions           — list promotions
+POST   /api/promotions           [local] — create promotion
+PUT    /api/promotions/:id       [local/admin] — update
+DELETE /api/promotions/:id       [local/admin] — delete
 ```
 
 ---
 
 ## Key Features
+
+### Reels — TikTok-style Video Feed (Premium)
+- Full-screen vertical video feed with scroll-snap navigation
+- Upload short clips (MP4/MOV/WebM, max 25MB, 60s) with auto-generated thumbnails
+- **Sound Library** — 8 royalty-free background music tracks (Creative Commons)
+- Sound picker with live audio preview (play/stop, spinning disc, equalizer bars)
+- Background music plays in sync with video in the feed
+- Sound attribution overlay with spinning disc (like TikTok)
+- Like, comment, save, and share videos
+- **Advanced Analytics** — daily stats (views, likes, comments, shares)
+- Analytics dashboard with stat cards, 14-day bar chart, and Top 5 videos leaderboard
+- Desktop layout: centered 450px column with keyboard navigation (arrow up/down)
+- Desktop nav buttons (right side) for scrolling between videos
 
 ### For Tourists
 - Personalized destination recommendations via **onboarding quiz**
@@ -278,6 +340,8 @@ GET    /api/dashboard           [admin]
 - Save favorite destinations (localStorage)
 - Book directly and track booking status
 - Leave reviews and ratings
+- **Reels** — watch and upload short travel videos with music
+- **Chat** — real-time messaging with local businesses
 - Bilingual UI (English / Bahasa Indonesia)
 
 ### For Local Businesses
@@ -286,12 +350,16 @@ GET    /api/dashboard           [admin]
 - Manage incoming bookings (confirm / complete / cancel)
 - View and respond to customer reviews
 - Weekly earnings analytics
+- **Business Hours Editor** — set operating hours
+- **Promotions** — create and manage promotional campaigns
+- **Chat** — real-time messaging with tourists
 
 ### For Admins
 - Full platform overview (users · bookings · destinations)
 - Approve or reject pending businesses
 - Manage all users, listings, and bookings
 - Weekly booking statistics chart
+- **Promotions Management** — oversee all promotional campaigns
 
 ---
 
