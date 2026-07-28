@@ -6,7 +6,7 @@
 
 ### GoSulawesi — Hidden Experiences Platform
 
-A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with authentic hidden destinations and local businesses across Sulawesi, Indonesia. Includes a TikTok-style Reels video feed with background music, advanced analytics, real-time chat, and promotional campaigns.
+A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with authentic hidden destinations and local businesses across Sulawesi, Indonesia. Includes a TikTok-style Reels video feed with background music, advanced analytics, real-time chat, promotional campaigns, and a cancellation policy system with refund calculation.
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -106,7 +106,7 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 |---|---|---|
 | **PHP** | 8.3 | REST API with PDO and prepared statements |
 | **Apache** | 2.4 | Web server with `.htaccess` URL rewriting |
-| **MySQL** | 8.0 | Relational database (13 core tables) |
+| **MySQL** | 8.0 | Relational database (15 core tables) |
 | **PDO** | — | Secure parameterized queries |
 | **Custom JWT** | — | HMAC-SHA256 token auth (7-day expiry) |
 
@@ -127,6 +127,7 @@ Go-sulawesi/
     api/
        auth/          → login · register · me
        bookings/      → CRUD bookings
+       cancellations/ → cancellation policies + requests
        businesses/    → CRUD local businesses
        chat/          → real-time messaging (tourist ↔ business)
        dashboard/     → platform stats
@@ -156,6 +157,7 @@ Go-sulawesi/
        VideoUploadModal.tsx  → video upload + sound picker with preview
        ChatWidget.tsx        → floating chat widget
        BusinessHoursEditor.tsx → business hours editor
+       CancellationPolicyEditor.tsx → cancellation policy editor
        RequireRole.tsx       → role-based access guard
    
     pages/
@@ -218,7 +220,11 @@ video_daily_stats → id · video_id · stat_date · views · likes · comments 
 conversations   → id · tourist_id · business_id · status
 messages        → id · conversation_id · sender_id · message_text
 promotions      → id · business_id · title · description · discount · start/end_date
+cancellation_policies  → id · business_id · deadline_hours · refund_before/after · requires_approval · notes
+cancellation_requests  → id · booking_id · user_id · reason · status · refund_percent · refund_amount · handled_by · handler_notes
 ```
+
+**Cancellation Request Status:** `pending` → `approved` / `rejected` / `auto`
 
 **User Roles:** `admin` · `tourist` · `local`  
 **Business Status:** `pending` → `approved` / `rejected`  
@@ -279,8 +285,14 @@ PUT    /api/businesses/:id      [local/admin]
 
 GET    /api/bookings
 POST   /api/bookings            [tourist]
-PUT    /api/bookings/:id/update
-DELETE /api/bookings/:id/delete
+PUT    /api/bookings/:id/update   [tourist/local/admin]
+DELETE /api/bookings/:id/delete   [tourist/local/admin]
+
+GET    /api/cancellations/policy?business_id=:id
+POST   /api/cancellations/policy          [local] — create/update policy
+GET    /api/cancellations/requests        [tourist sees own · local sees business · admin sees all]
+POST   /api/cancellations/requests        [tourist] — create cancellation request
+PUT    /api/cancellations/requests/:id    [local/admin] — approve/reject request
 
 GET    /api/reviews
 POST   /api/reviews             [tourist]
@@ -331,7 +343,6 @@ DELETE /api/promotions/:id       [local/admin] — delete
 - **Advanced Analytics** — daily stats (views, likes, comments, shares)
 - Analytics dashboard with stat cards, 14-day bar chart, and Top 5 videos leaderboard
 - Desktop layout: centered 450px column with keyboard navigation (arrow up/down)
-- Desktop nav buttons (right side) for scrolling between videos
 
 ### For Tourists
 - Personalized destination recommendations via **onboarding quiz**
@@ -339,6 +350,7 @@ DELETE /api/promotions/:id       [local/admin] — delete
 - **Itinerary Builder** — plan multi-day trips with price estimation
 - Save favorite destinations (localStorage)
 - Book directly and track booking status
+- **Cancellation Requests** — request booking cancellations with automatic refund calculation
 - Leave reviews and ratings
 - **Reels** — watch and upload short travel videos with music
 - **Chat** — real-time messaging with local businesses
@@ -348,6 +360,8 @@ DELETE /api/promotions/:id       [local/admin] — delete
 - Create and manage business listings
 - Real-time booking dashboard with revenue charts
 - Manage incoming bookings (confirm / complete / cancel)
+- **Cancellation Requests** — approve or reject tourist cancellation requests with refund calculation
+- **Cancellation Policy Editor** — set deadline hours, refund percentages, and approval requirements
 - View and respond to customer reviews
 - Weekly earnings analytics
 - **Business Hours Editor** — set operating hours
