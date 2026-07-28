@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api, getStoredUser } from '../lib/api'
+import { api, getStoredUser, type CancellationRequest } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import BusinessLayout from '../components/BusinessLayout'
 
@@ -37,6 +37,19 @@ const t: Record<Lang, any> = {
     markCancelled: 'Cancel',
     updated: 'Booking updated',
     error: 'Failed to update booking',
+    cancelRequests: 'Cancellation Requests',
+    cancelPending: 'Pending',
+    cancelApproved: 'Approved',
+    cancelRejected: 'Rejected',
+    cancelAuto: 'Auto',
+    approve: 'Approve',
+    reject: 'Reject',
+    refund: 'Refund',
+    reason: 'Reason',
+    noCancelRequests: 'No cancellation requests',
+    handlerNotes: 'Notes (optional)',
+    cancelHandled: 'Cancellation request handled',
+    cancelHandleError: 'Failed to handle request',
   },
   id: {
     pageTitle: 'Pemesanan',
@@ -61,6 +74,19 @@ const t: Record<Lang, any> = {
     markCancelled: 'Batalkan',
     updated: 'Pemesanan diperbarui',
     error: 'Gagal memperbarui pemesanan',
+    cancelRequests: 'Permintaan Pembatalan',
+    cancelPending: 'Tertunda',
+    cancelApproved: 'Disetujui',
+    cancelRejected: 'Ditolak',
+    cancelAuto: 'Otomatis',
+    approve: 'Setujui',
+    reject: 'Tolak',
+    refund: 'Pengembalian',
+    reason: 'Alasan',
+    noCancelRequests: 'Tidak ada permintaan pembatalan',
+    handlerNotes: 'Catatan (opsional)',
+    cancelHandled: 'Permintaan pembatalan ditangani',
+    cancelHandleError: 'Gagal menangani permintaan',
   },
 }
 
@@ -83,6 +109,10 @@ export default function BusinessBookingsPage() {
   const [search, setSearch] = useState('')
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
+  const [cancelReqs, setCancelReqs] = useState<CancellationRequest[]>([])
+  const [handleModal, setHandleModal] = useState<CancellationRequest | null>(null)
+  const [handlerNotes, setHandlerNotes] = useState('')
+  const [handling, setHandling] = useState(false)
 
   useEffect(() => {
     if (!currentUser) {
@@ -90,6 +120,7 @@ export default function BusinessBookingsPage() {
       return
     }
     fetchBookings()
+    api.getCancellationRequests().then((r: any) => setCancelReqs(r.requests || [])).catch(() => {})
   }, [navigate])
 
   useEffect(() => {
@@ -131,6 +162,36 @@ export default function BusinessBookingsPage() {
 
   const statusLabel = (s: string) => {
     return txt[s] || s
+  }
+
+  const handleCancelAction = async (action: 'approve' | 'reject') => {
+    if (!handleModal) return
+    setHandling(true)
+    try {
+      await api.handleCancellationRequest(handleModal.id, action, handlerNotes)
+      const r = await api.getCancellationRequests()
+      setCancelReqs((r as any).requests || [])
+      fetchBookings()
+      setSuccess(txt.cancelHandled)
+      setTimeout(() => setSuccess(''), 3000)
+      setHandleModal(null)
+      setHandlerNotes('')
+    } catch (err: any) {
+      setError(err.message || txt.cancelHandleError)
+    } finally {
+      setHandling(false)
+    }
+  }
+
+  const cancelStatusBadge = (status: string) => {
+    const map: Record<string, { bg: string; color: string; label: string }> = {
+      pending: { bg: '#ffedd5', color: '#c2410c', label: txt.cancelPending },
+      approved: { bg: '#dcfce7', color: '#15803d', label: txt.cancelApproved },
+      rejected: { bg: '#fee2e2', color: '#b91c1c', label: txt.cancelRejected },
+      auto: { bg: '#dbeafe', color: '#1d4ed8', label: txt.cancelAuto },
+    }
+    const s = map[status] || map.pending
+    return <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ background: s.bg, color: s.color }}>{s.label}</span>
   }
 
   return (
@@ -241,7 +302,90 @@ export default function BusinessBookingsPage() {
               </div>
             </div>
           )}
+
+          {/* Cancellation Requests */}
+          {cancelReqs.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-lg font-bold mb-3" style={{ color: TEXT }}>{txt.cancelRequests}</h2>
+              <div className="space-y-3">
+                {cancelReqs.map((cr) => (
+                  <div key={cr.id} className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: shadow }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-bold truncate" style={{ color: TEXT }}>
+                            {cr.user_name || cr.destination_name || cr.business_name || 'Booking'}
+                          </p>
+                          {cancelStatusBadge(cr.status)}
+                        </div>
+                        <p className="text-xs" style={{ color: MUTED }}>
+                          {txt.date}: {cr.booking_date ? new Date(cr.booking_date).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB') : '-'}
+                          {' · '}Rp {Number(cr.total_price || 0).toLocaleString('id-ID')}
+                        </p>
+                        {cr.refund_percent > 0 && (
+                          <p className="text-xs mt-0.5" style={{ color: '#15803d' }}>
+                            {txt.refund}: {cr.refund_percent}% = Rp {Number(cr.refund_amount || 0).toLocaleString('id-ID')}
+                          </p>
+                        )}
+                        {cr.reason && (
+                          <p className="text-xs mt-1" style={{ color: SUBTLE }}>{txt.reason}: {cr.reason}</p>
+                        )}
+                      </div>
+                      {cr.status === 'pending' && (
+                        <button onClick={() => { setHandleModal(cr); setHandlerNotes('') }}
+                          className="px-3 py-1.5 rounded-xl text-xs font-bold border-0 cursor-pointer flex-shrink-0"
+                          style={{ background: A, color: 'white' }}>
+                          {txt.approve}/{txt.reject}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
+      {/* Handle cancellation modal */}
+      {handleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}
+          onClick={() => { setHandleModal(null); setHandlerNotes('') }}>
+          <div className="rounded-2xl p-6 max-w-md w-full mx-4" style={{ background: CARD }}
+            onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>{txt.cancelRequests}</h3>
+            <p className="text-xs mb-4" style={{ color: MUTED }}>
+              {handleModal.user_name || handleModal.destination_name || handleModal.business_name}
+              {' · '}Rp {Number(handleModal.total_price || 0).toLocaleString('id-ID')}
+            </p>
+            {handleModal.reason && (
+              <p className="text-xs mb-3 px-3 py-2 rounded-xl" style={{ background: '#f9fafb', color: MUTED }}>
+                {txt.reason}: {handleModal.reason}
+              </p>
+            )}
+            <p className="text-sm mb-3" style={{ color: TEXT }}>
+              {txt.refund}: <span className="font-bold">{handleModal.refund_percent}%</span>
+              {' = Rp '}<span className="font-bold">{Number(handleModal.refund_amount || 0).toLocaleString('id-ID')}</span>
+            </p>
+            <label className="text-xs font-semibold" style={{ color: TEXT }}>{txt.handlerNotes}</label>
+            <textarea value={handlerNotes} rows={2}
+              onChange={e => setHandlerNotes(e.target.value)}
+              className="w-full mt-1 rounded-xl px-3 py-2 text-sm outline-none resize-none"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT }} />
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => handleCancelAction('reject')} disabled={handling}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold border-0 cursor-pointer"
+                style={{ background: handling ? '#d1d5db' : '#fee2e2', color: '#b91c1c' }}>
+                {txt.reject}
+              </button>
+              <button onClick={() => handleCancelAction('approve')} disabled={handling}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold border-0 cursor-pointer"
+                style={{ background: handling ? '#d1d5db' : '#15803d', color: 'white' }}>
+                {txt.approve}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </BusinessLayout>
   )

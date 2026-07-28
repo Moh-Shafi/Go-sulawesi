@@ -36,6 +36,11 @@ RewriteRule ^api/videos/([0-9]+)/view$ api/videos/show.php?id=$1&view=1 [QSA,END
 RewriteRule ^api/videos/([0-9]+)/share$ api/videos/show.php?id=$1&share=1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteRule ^api/stats$ api/stats.php [QSA,END]
 
+# Cancellation system
+RewriteRule ^api/cancellations/policy$ api/cancellations/index.php?policy=1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/cancellations/requests$ api/cancellations/index.php [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^api/cancellations/requests/([0-9]+)$ api/cancellations/handle.php?id=$1 [QSA,END,E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
 # Allow larger uploads for the video feed (mod_php only; see php-video.ini for Docker)
 <IfModule mod_php.c>
     php_value upload_max_filesize 30M

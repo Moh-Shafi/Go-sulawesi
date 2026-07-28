@@ -21,7 +21,16 @@ if (!$booking) {
     json_response(404, ['error' => 'Booking not found']);
 }
 
-if ($current['role'] !== 'admin' && $current['user_id'] !== (int) $booking['user_id']) {
+if ($current['role'] === 'admin') {
+    // admin can delete any booking
+} elseif ($current['role'] === 'local' && $current['user_id'] !== (int) $booking['user_id']) {
+    // local business can delete bookings for their own business
+    $bStmt = db()->prepare('SELECT id FROM businesses WHERE id = ? AND user_id = ?');
+    $bStmt->execute([$booking['business_id'], $current['user_id']]);
+    if (!$bStmt->fetch()) {
+        json_response(403, ['error' => 'Forbidden']);
+    }
+} elseif ($current['user_id'] !== (int) $booking['user_id']) {
     json_response(403, ['error' => 'Forbidden']);
 }
 

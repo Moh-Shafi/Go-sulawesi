@@ -8,7 +8,7 @@ if ($method === 'GET') {
 
     if ($user['role'] === 'admin') {
         $stmt = db()->query('
-            SELECT b.*, u.name AS user_name, d.name AS destination_name, biz.business_name
+            SELECT b.*, u.name AS user_name, d.name AS destination_name, d.image_url AS destination_image, biz.business_name, biz.image_url AS business_image
             FROM bookings b
             LEFT JOIN users u ON b.user_id = u.id
             LEFT JOIN destinations d ON b.destination_id = d.id
@@ -17,7 +17,7 @@ if ($method === 'GET') {
         ');
     } elseif ($user['role'] === 'local') {
         $stmt = db()->prepare('
-            SELECT b.*, d.name AS destination_name, biz.business_name
+            SELECT b.*, d.name AS destination_name, d.image_url AS destination_image, biz.business_name, biz.image_url AS business_image
             FROM bookings b
             LEFT JOIN destinations d ON b.destination_id = d.id
             LEFT JOIN businesses biz ON b.business_id = biz.id
@@ -27,7 +27,7 @@ if ($method === 'GET') {
         $stmt->execute([$user['user_id']]);
     } else {
         $stmt = db()->prepare('
-            SELECT b.*, d.name AS destination_name, biz.business_name
+            SELECT b.*, d.name AS destination_name, d.image_url AS destination_image, biz.business_name, biz.image_url AS business_image
             FROM bookings b
             LEFT JOIN destinations d ON b.destination_id = d.id
             LEFT JOIN businesses biz ON b.business_id = biz.id

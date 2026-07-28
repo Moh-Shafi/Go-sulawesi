@@ -104,8 +104,12 @@ export default function MyTripsPage() {
               const status = statusStyle[t.status] || statusStyle.pending
               return (
                 <div key={i} className="rounded-2xl p-5 flex items-center gap-4" style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: shadow }}>
-                  <div className="w-16 h-16 rounded-xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0" style={{ background: A }}>
-                    {initial(t.destination_name || t.business_name || txt.unnamedTrip)}
+                  <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center text-lg font-bold text-white flex-shrink-0" style={{ background: A }}>
+                    {t.business_image || t.destination_image ? (
+                      <img src={t.business_image || t.destination_image} alt={t.destination_name || t.business_name || ''} className="w-full h-full object-cover" />
+                    ) : (
+                      initial(t.destination_name || t.business_name || txt.unnamedTrip)
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

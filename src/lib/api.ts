@@ -152,6 +152,18 @@ export const api = {
   deleteBooking: (id: number) =>
     request(`/bookings/${id}/delete`, { method: 'DELETE' }),
 
+  // ── Cancellation ──
+  getCancellationPolicy: (businessId: number) =>
+    request(`/cancellations/policy?business_id=${businessId}`),
+  saveCancellationPolicy: (data: Partial<CancellationPolicy>) =>
+    request('/cancellations/policy', { method: 'POST', body: JSON.stringify(data) }),
+  getCancellationRequests: () =>
+    request('/cancellations/requests'),
+  createCancellationRequest: (bookingId: number, reason: string) =>
+    request('/cancellations/requests', { method: 'POST', body: JSON.stringify({ booking_id: bookingId, reason }) }),
+  handleCancellationRequest: (id: number, action: 'approve' | 'reject', notes?: string) =>
+    request(`/cancellations/requests/${id}`, { method: 'PUT', body: JSON.stringify({ action, notes }) }),
+
   // ── Reviews ──
   getReviews: (params?: Record<string, string>) => {
     const qs = params ? '?' + new URLSearchParams(params).toString() : ''
@@ -338,4 +350,36 @@ export type VideoTopVideo = {
   comments: number
   shares: number
   created_at: string
+}
+
+// ── Cancellation ──
+export type CancellationPolicy = {
+  id?: number
+  business_id: number
+  deadline_hours: number
+  refund_before_deadline: number
+  refund_after_deadline: number
+  requires_approval: number
+  notes: string | null
+  is_default?: boolean
+}
+
+export type CancellationRequest = {
+  id: number
+  booking_id: number
+  user_id: number
+  reason: string | null
+  status: 'pending' | 'approved' | 'rejected' | 'auto'
+  refund_percent: number
+  refund_amount: number
+  handled_by: number | null
+  handler_notes: string | null
+  created_at: string
+  handled_at: string | null
+  booking_date?: string
+  total_price?: number
+  booking_status?: string
+  user_name?: string
+  business_name?: string
+  destination_name?: string
 }

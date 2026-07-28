@@ -473,48 +473,6 @@ export default function VideoFeedPage() {
         ))}
       </div>
 
-      {/* Desktop nav arrows — right side */}
-      {videos.length > 1 && !loading && (
-        <div className="hidden md:flex absolute right-1/2 translate-x-[260px] top-1/2 -translate-y-1/2 z-30 flex-col gap-3">
-          <button onClick={() => {
-            const idx = videos.findIndex(v => v.id === activeId)
-            scrollToIndex(idx - 1)
-          }}
-            disabled={activeId === videos[0]?.id}
-            className="w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer transition-all"
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              color: 'white',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              opacity: activeId === videos[0]?.id ? 0.3 : 1,
-              cursor: activeId === videos[0]?.id ? 'not-allowed' : 'pointer',
-            }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <polyline points="18 15 12 9 6 15" />
-            </svg>
-          </button>
-          <button onClick={() => {
-            const idx = videos.findIndex(v => v.id === activeId)
-            scrollToIndex(idx + 1)
-          }}
-            disabled={activeId === videos[videos.length - 1]?.id}
-            className="w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer transition-all"
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              color: 'white',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              opacity: activeId === videos[videos.length - 1]?.id ? 0.3 : 1,
-              cursor: activeId === videos[videos.length - 1]?.id ? 'not-allowed' : 'pointer',
-            }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-        </div>
-      )}
-
       {/* Upload button — bottom right glass pill */}
       <button onClick={() => setUploadOpen(true)}
         className="absolute right-4 bottom-6 z-30 flex items-center gap-2 px-4 py-2.5 rounded-full border-0 cursor-pointer text-sm font-bold transition-all active:scale-95"

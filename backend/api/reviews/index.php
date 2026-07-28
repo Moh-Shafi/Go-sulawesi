@@ -7,7 +7,7 @@ if ($method === 'GET') {
     $destination_id = $_GET['destination_id'] ?? null;
     $business_id = $_GET['business_id'] ?? null;
 
-    $sql = 'SELECT r.*, u.name AS user_name, u.avatar AS user_avatar FROM reviews r JOIN users u ON r.user_id = u.id WHERE 1=1';
+    $sql = 'SELECT r.*, u.name AS user_name, u.avatar AS user_avatar, d.name AS destination_name, d.image_url AS destination_image, biz.business_name, biz.image_url AS business_image FROM reviews r JOIN users u ON r.user_id = u.id LEFT JOIN destinations d ON r.destination_id = d.id LEFT JOIN businesses biz ON r.business_id = biz.id WHERE 1=1';
     $params = [];
 
     if ($destination_id) {

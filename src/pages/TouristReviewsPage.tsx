@@ -97,8 +97,12 @@ export default function TouristReviewsPage() {
             {reviews.map((r, i) => (
               <div key={i} className="rounded-2xl p-5" style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: shadow }}>
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: A }}>
-                    {initial(r.user_name || r.user_name || 'R')}
+                  <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: A }}>
+                    {r.business_image || r.destination_image ? (
+                      <img src={r.business_image || r.destination_image} alt={r.destination_name || r.business_name || ''} className="w-full h-full object-cover" />
+                    ) : (
+                      initial(r.user_name || 'R')
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold" style={{ color: TEXT }}>{r.user_name || 'Traveler'}</p>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api, getStoredUser, setStoredUser, clearToken } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import BusinessLayout from '../components/BusinessLayout'
+import CancellationPolicyEditor from '../components/CancellationPolicyEditor'
 
 const A = '#ea580c'
 const AL = '#fff7ed'
@@ -370,6 +371,12 @@ export default function BusinessSettingsPage() {
                 <p className="text-sm mb-4" style={{ color: MUTED }}>{txt.deleteAccountDesc}</p>
                 <button onClick={handleDeleteAccount} disabled={loading} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:opacity-90 disabled:opacity-60" style={{ background: '#dc2626' }}>{loading ? '...' : txt.deleteAccount}</button>
               </div>
+
+              {businesses[0]?.id && (
+                <div className="mt-6">
+                  <CancellationPolicyEditor businessId={businesses[0].id} />
+                </div>
+              )}
             </div>
           </div>
         </div>

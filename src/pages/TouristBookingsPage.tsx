@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api, getStoredUser } from '../lib/api'
+import { api, getStoredUser, type CancellationRequest } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import TouristLayout from '../components/TouristLayout'
 
@@ -33,6 +33,19 @@ const t: Record<Lang, any> = {
     guide: 'Guide',
     details: 'Details',
     statusLabels: { confirmed: 'Confirmed', completed: 'Completed', pending: 'Pending', cancelled: 'Cancelled' },
+    cancelBooking: 'Request Cancellation',
+    cancelReason: 'Reason for cancellation',
+    cancelReasonHint: 'E.g. change of plans, weather, emergency...',
+    submitCancel: 'Submit Request',
+    cancelling: 'Submitting...',
+    cancelSuccess: 'Cancellation request submitted',
+    cancelError: 'Failed to submit cancellation request',
+    cancelPending: 'Cancellation pending',
+    cancelApproved: 'Cancellation approved',
+    cancelRejected: 'Cancellation rejected',
+    cancelAuto: 'Auto-cancelled',
+    refundAmount: 'Refund',
+    close: 'Close',
   },
   id: {
     explore: 'Jelajahi',
@@ -53,6 +66,19 @@ const t: Record<Lang, any> = {
     guide: 'Pemandu',
     details: 'Detail',
     statusLabels: { confirmed: 'Terkonfirmasi', completed: 'Selesai', pending: 'Tertunda', cancelled: 'Dibatalkan' },
+    cancelBooking: 'Ajukan Pembatalan',
+    cancelReason: 'Alasan pembatalan',
+    cancelReasonHint: 'Mis. perubahan rencana, cuaca, darurat...',
+    submitCancel: 'Kirim Permintaan',
+    cancelling: 'Mengirim...',
+    cancelSuccess: 'Permintaan pembatalan dikirim',
+    cancelError: 'Gagal mengajukan pembatalan',
+    cancelPending: 'Pembatalan tertunda',
+    cancelApproved: 'Pembatalan disetujui',
+    cancelRejected: 'Pembatalan ditolak',
+    cancelAuto: 'Dibatalkan otomatis',
+    refundAmount: 'Pengembalian',
+    close: 'Tutup',
   },
 }
 
@@ -63,6 +89,11 @@ export default function TouristBookingsPage() {
   const currentUser = getStoredUser()
   const [bookings, setBookings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [cancelRequests, setCancelRequests] = useState<CancellationRequest[]>([])
+  const [cancelModal, setCancelModal] = useState<any | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelMsg, setCancelMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   const statusStyle: Record<string, any> = {
     confirmed: { bg: '#dcfce7', color: '#15803d', label: txt.statusLabels.confirmed },
@@ -82,9 +113,43 @@ export default function TouristBookingsPage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
+    api.getCancellationRequests().then((r: any) => setCancelRequests(r.requests || [])).catch(() => {})
   }, [navigate])
 
   const initial = (name: string) => name?.charAt(0).toUpperCase() || 'B'
+
+  const getCancelRequest = (bookingId: number) => cancelRequests.find(r => r.booking_id === bookingId)
+
+  const handleCancel = async () => {
+    if (!cancelModal) return
+    setCancelling(true)
+    setCancelMsg(null)
+    try {
+      await api.createCancellationRequest(cancelModal.id, cancelReason)
+      const r = await api.getCancellationRequests()
+      setCancelRequests((r as any).requests || [])
+      setCancelMsg({ type: 'ok', text: txt.cancelSuccess })
+      setTimeout(() => {
+        setCancelModal(null)
+        setCancelReason('')
+        setCancelMsg(null)
+      }, 2000)
+    } catch (err: any) {
+      setCancelMsg({ type: 'err', text: err.message || txt.cancelError })
+    } finally {
+      setCancelling(false)
+    }
+  }
+
+  const cancelStatusInfo = (status: string) => {
+    const map: Record<string, { bg: string; color: string; label: string }> = {
+      pending: { bg: '#ffedd5', color: '#c2410c', label: txt.cancelPending },
+      approved: { bg: '#dcfce7', color: '#15803d', label: txt.cancelApproved },
+      rejected: { bg: '#fee2e2', color: '#b91c1c', label: txt.cancelRejected },
+      auto: { bg: '#dbeafe', color: '#1d4ed8', label: txt.cancelAuto },
+    }
+    return map[status] || map.pending
+  }
 
   return (
     <TouristLayout title={txt.bookingsTitle}>
@@ -113,8 +178,12 @@ export default function TouristBookingsPage() {
               return (
                 <div key={i} className="rounded-2xl p-5" style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: shadow }}>
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 rounded-xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0" style={{ background: A }}>
-                      {initial(b.destination_name || b.business_name || 'B')}
+                    <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center text-lg font-bold text-white flex-shrink-0" style={{ background: A }}>
+                      {b.business_image || b.destination_image ? (
+                        <img src={b.business_image || b.destination_image} alt={b.destination_name || b.business_name || ''} className="w-full h-full object-cover" />
+                      ) : (
+                        initial(b.destination_name || b.business_name || 'B')
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -132,9 +201,41 @@ export default function TouristBookingsPage() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="font-black text-base" style={{ color: TEXT }}>Rp {Number(b.total_price || 0).toLocaleString('id-ID')}</p>
-                      <Link to="/tourist" className="inline-block mt-2 text-xs font-bold px-4 py-2 rounded-xl no-underline" style={{ background: AL, color: A }}>
-                        {txt.details}
-                      </Link>
+                      {b.refund_amount > 0 && (
+                        <p className="text-xs font-semibold" style={{ color: '#15803d' }}>
+                          {txt.refundAmount}: Rp {Number(b.refund_amount).toLocaleString('id-ID')}
+                        </p>
+                      )}
+                      {b.status !== 'cancelled' && b.status !== 'completed' && (() => {
+                        const cr = getCancelRequest(b.id)
+                        if (cr && cr.status === 'pending') {
+                          const ci = cancelStatusInfo(cr.status)
+                          return (
+                            <span className="inline-block mt-2 text-xs px-3 py-1.5 rounded-xl font-bold" style={{ background: ci.bg, color: ci.color }}>
+                              {ci.label}
+                            </span>
+                          )
+                        }
+                        return (
+                          <button onClick={() => { setCancelModal(b); setCancelReason(''); setCancelMsg(null) }}
+                            className="inline-block mt-2 text-xs font-bold px-4 py-2 rounded-xl border-0 cursor-pointer"
+                            style={{ background: '#fee2e2', color: '#b91c1c' }}>
+                            {txt.cancelBooking}
+                          </button>
+                        )
+                      })()}
+                      {b.status === 'cancelled' && (() => {
+                        const cr = getCancelRequest(b.id)
+                        if (cr) {
+                          const ci = cancelStatusInfo(cr.status)
+                          return (
+                            <span className="inline-block mt-2 text-xs px-3 py-1.5 rounded-xl font-bold" style={{ background: ci.bg, color: ci.color }}>
+                              {ci.label}
+                            </span>
+                          )
+                        }
+                        return null
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -143,6 +244,44 @@ export default function TouristBookingsPage() {
           </div>
         )}
       </div>
+
+      {/* Cancellation modal */}
+      {cancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}
+          onClick={() => { setCancelModal(null); setCancelReason(''); setCancelMsg(null) }}>
+          <div className="rounded-2xl p-6 max-w-md w-full mx-4" style={{ background: CARD }}
+            onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>{txt.cancelBooking}</h3>
+            <p className="text-xs mb-4" style={{ color: MUTED }}>
+              {cancelModal.destination_name || cancelModal.business_name} · Rp {Number(cancelModal.total_price || 0).toLocaleString('id-ID')}
+            </p>
+            <label className="text-xs font-semibold" style={{ color: TEXT }}>{txt.cancelReason}</label>
+            <textarea value={cancelReason} rows={3}
+              onChange={e => setCancelReason(e.target.value)}
+              placeholder={txt.cancelReasonHint}
+              className="w-full mt-1 rounded-xl px-3 py-2 text-sm outline-none resize-none"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT }} />
+            {cancelMsg && (
+              <p className="mt-3 text-xs px-3 py-2 rounded-xl"
+                style={{ background: cancelMsg.type === 'ok' ? '#dcfce7' : '#fee2e2', color: cancelMsg.type === 'ok' ? '#15803d' : '#b91c1c' }}>
+                {cancelMsg.text}
+              </p>
+            )}
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => { setCancelModal(null); setCancelReason(''); setCancelMsg(null) }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold border-0 cursor-pointer"
+                style={{ background: '#f3f4f6', color: MUTED }}>
+                {txt.close}
+              </button>
+              <button onClick={handleCancel} disabled={cancelling}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold border-0 cursor-pointer"
+                style={{ background: cancelling ? '#d1d5db' : '#dc2626', color: 'white' }}>
+                {cancelling ? txt.cancelling : txt.submitCancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </TouristLayout>
   )

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { api, getStoredUser } from '../lib/api'
+import { api, getStoredUser, type CancellationPolicy } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import { toggleSavedId, getSavedIds } from '../lib/saved'
 import { formatBusinessHours } from '../components/BusinessHoursEditor'
@@ -41,6 +41,13 @@ const t: Record<Lang, any> = {
     off: 'OFF',
     validUntil: 'Valid until',
     noPromotions: 'No active promotions',
+    cancellationPolicy: 'Cancellation Policy',
+    cancelBefore: 'Cancel {h}+ hours before',
+    cancelWithin: 'Cancel within {h} hours',
+    refund: 'refund',
+    noRefund: 'No refund',
+    approvalRequired: 'Approval required',
+    autoApproved: 'Auto-approved',
   },
   id: {
     back: 'Kembali',
@@ -66,6 +73,13 @@ const t: Record<Lang, any> = {
     off: 'OFF',
     validUntil: 'Berlaku hingga',
     noPromotions: 'Tidak ada promosi aktif',
+    cancellationPolicy: 'Kebijakan Pembatalan',
+    cancelBefore: 'Batalkan {h}+ jam sebelumnya',
+    cancelWithin: 'Batalkan dalam {h} jam',
+    refund: 'pengembalian',
+    noRefund: 'Tidak ada pengembalian',
+    approvalRequired: 'Perlu persetujuan',
+    autoApproved: 'Disetujui otomatis',
   },
 }
 
@@ -84,6 +98,7 @@ export default function BusinessDetailPage() {
   const [booked, setBooked] = useState(false)
   const [bookingError, setBookingError] = useState('')
   const [promotions, setPromotions] = useState<any[]>([])
+  const [cancelPolicy, setCancelPolicy] = useState<CancellationPolicy | null>(null)
 
   useEffect(() => {
     if (!currentUser) {
@@ -100,6 +115,7 @@ export default function BusinessDetailPage() {
       const all = r.promotions || []
       setPromotions(all.filter((p: any) => p.business_id === Number(id) && p.status === 'approved'))
     }).catch(() => {})
+    api.getCancellationPolicy(Number(id)).then((r: any) => setCancelPolicy(r.policy)).catch(() => {})
   }, [navigate, id])
 
   const handleSave = () => {
@@ -234,6 +250,48 @@ export default function BusinessDetailPage() {
               </div>
             )
           })()}
+
+          {/* Cancellation Policy */}
+          {cancelPolicy && (
+            <div className="mb-6">
+              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: SUBTLE }}>{txt.cancellationPolicy}</p>
+              <div className="rounded-xl p-4" style={{ background: '#f8fafc', border: `1px solid ${BORDER}` }}>
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex-1 min-w-[140px] rounded-lg p-3" style={{ background: 'white', border: `1px solid ${BORDER}` }}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
+                      <p className="text-xs font-bold" style={{ color: TEXT }}>
+                        {txt.cancelBefore.replace('{h}', String(cancelPolicy.deadline_hours))}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold" style={{ color: cancelPolicy.refund_before_deadline > 0 ? '#15803d' : '#b91c1c' }}>
+                      {cancelPolicy.refund_before_deadline}% {txt.refund}
+                    </p>
+                  </div>
+                  <div className="flex-1 min-w-[140px] rounded-lg p-3" style={{ background: 'white', border: `1px solid ${BORDER}` }}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                      <p className="text-xs font-bold" style={{ color: TEXT }}>
+                        {txt.cancelWithin.replace('{h}', String(cancelPolicy.deadline_hours))}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold" style={{ color: cancelPolicy.refund_after_deadline > 0 ? '#15803d' : '#b91c1c' }}>
+                      {cancelPolicy.refund_after_deadline > 0 ? `${cancelPolicy.refund_after_deadline}% ${txt.refund}` : txt.noRefund}
+                    </p>
+                  </div>
+                  <div className="flex-1 min-w-[140px] rounded-lg p-3" style={{ background: 'white', border: `1px solid ${BORDER}` }}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.66 0 3.22.45 4.56 1.24"/></svg>
+                      <p className="text-xs font-bold" style={{ color: TEXT }}>{cancelPolicy.requires_approval ? txt.approvalRequired : txt.autoApproved}</p>
+                    </div>
+                  </div>
+                </div>
+                {cancelPolicy.notes && (
+                  <p className="text-xs mt-3 pt-3" style={{ color: MUTED, borderTop: `1px solid ${BORDER}` }}>{cancelPolicy.notes}</p>
+                )}
+              </div>
+            </div>
+          )}
 
           {promotions.length > 0 && (
             <div className="mb-6">
