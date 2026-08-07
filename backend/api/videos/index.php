@@ -26,6 +26,14 @@ if ($method === 'GET') {
         $where[] = 'v.user_id = ?';
         $params[] = $uid;
     }
+    if (!empty($_GET['following'])) {
+        $join .= ' JOIN user_follows uf ON uf.following_id = v.user_id AND uf.follower_id = ?';
+        $params[] = $uid;
+    }
+    if (!empty($_GET['sound_id'])) {
+        $where[] = 'v.sound_id = ?';
+        $params[] = (int) $_GET['sound_id'];
+    }
 
     $sql = "
         SELECT

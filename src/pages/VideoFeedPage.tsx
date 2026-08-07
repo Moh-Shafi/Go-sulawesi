@@ -9,12 +9,14 @@ const A = '#0d9488'
 const t: Record<Lang, any> = {
   en: {
     forYou: 'For You',
+    following: 'Following',
     saved: 'Saved',
     mine: 'My Videos',
     empty: 'No videos yet',
     emptyHint: 'Be the first to share a moment from Sulawesi',
     emptySaved: 'You have not saved any videos yet',
     emptyMine: 'You have not posted any videos yet',
+    emptyFollowing: 'Follow local businesses to see their videos here',
     upload: 'Upload',
     comments: 'Comments',
     noComments: 'No comments yet. Say something nice!',
@@ -34,15 +36,36 @@ const t: Record<Lang, any> = {
     topVideos: 'Top Videos',
     last14Days: 'Last 14 days',
     noAnalytics: 'No analytics data yet',
+    report: 'Report',
+    reportTitle: 'Report this video',
+    reportReason: 'Reason',
+    reportHint: 'Tell us why this video should be reviewed',
+    reportSubmit: 'Submit Report',
+    reportSuccess: 'Report submitted. Thank you.',
+    reportDuplicate: 'You have already reported this video',
+    reportCancel: 'Cancel',
+    share: 'Share',
+    shareWhatsApp: 'Share on WhatsApp',
+    shareCopy: 'Copy Link',
+    shareNative: 'Share…',
+    shareCopied: 'Link copied!',
+    follow: 'Follow',
+    following2: 'Following',
+    unfollow: 'Unfollow',
+    soundVideos: 'Videos using this sound',
+    noSoundVideos: 'No other videos use this sound yet',
+    pip: 'Picture in Picture',
   },
   id: {
     forYou: 'Untukmu',
+    following: 'Mengikuti',
     saved: 'Tersimpan',
     mine: 'Video Saya',
     empty: 'Belum ada video',
     emptyHint: 'Jadilah yang pertama membagikan momen dari Sulawesi',
     emptySaved: 'Kamu belum menyimpan video',
     emptyMine: 'Kamu belum mengunggah video',
+    emptyFollowing: 'Ikuti bisnis lokal untuk melihat video mereka di sini',
     upload: 'Unggah',
     comments: 'Komentar',
     noComments: 'Belum ada komentar. Tulis sesuatu!',
@@ -62,6 +85,25 @@ const t: Record<Lang, any> = {
     topVideos: 'Video Teratas',
     last14Days: '14 hari terakhir',
     noAnalytics: 'Belum ada data analitik',
+    report: 'Laporkan',
+    reportTitle: 'Laporkan video ini',
+    reportReason: 'Alasan',
+    reportHint: 'Beritahu kami mengapa video ini harus ditinjau',
+    reportSubmit: 'Kirim Laporan',
+    reportSuccess: 'Laporan dikirim. Terima kasih.',
+    reportDuplicate: 'Anda sudah melaporkan video ini',
+    reportCancel: 'Batal',
+    share: 'Bagikan',
+    shareWhatsApp: 'Bagikan ke WhatsApp',
+    shareCopy: 'Salin Tautan',
+    shareNative: 'Bagikan…',
+    shareCopied: 'Tautan disalin!',
+    follow: 'Ikuti',
+    following2: 'Mengikuti',
+    unfollow: 'Berhenti Ikuti',
+    soundVideos: 'Video dengan suara ini',
+    noSoundVideos: 'Belum ada video lain yang menggunakan suara ini',
+    pip: 'Gambar dalam Gambar',
   },
 }
 
@@ -71,7 +113,7 @@ function formatCount(n: number) {
   return String(n)
 }
 
-type Tab = 'foryou' | 'saved' | 'mine'
+type Tab = 'foryou' | 'following' | 'saved' | 'mine'
 
 export default function VideoFeedPage() {
   const navigate = useNavigate()
@@ -88,6 +130,13 @@ export default function VideoFeedPage() {
   const [uploadOpen, setUploadOpen] = useState(false)
   const [commentsFor, setCommentsFor] = useState<FeedVideo | null>(null)
   const [showAnalytics, setShowAnalytics] = useState(false)
+  const [reportFor, setReportFor] = useState<FeedVideo | null>(null)
+  const [shareFor, setShareFor] = useState<FeedVideo | null>(null)
+  const [soundFor, setSoundFor] = useState<FeedVideo | null>(null)
+  const [heartBurst, setHeartBurst] = useState<{ id: number; key: number } | null>(null)
+  const [progress, setProgress] = useState<Record<number, number>>({})
+  const [followStates, setFollowStates] = useState<Record<number, boolean>>({})
+  const [shareCopied, setShareCopied] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map())
@@ -98,15 +147,20 @@ export default function VideoFeedPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await api.getVideos({ saved: tab === 'saved', mine: tab === 'mine' })
+      const res = await api.getVideos({ saved: tab === 'saved', mine: tab === 'mine', following: tab === 'following' })
       setVideos(res.videos || [])
+      // Check follow states for video authors
+      const authorIds = [...new Set((res.videos || []).map(v => v.user_id).filter(id => id !== currentUser?.id))]
+      authorIds.forEach(id => {
+        api.checkFollowing(id).then(r => setFollowStates(prev => ({ ...prev, [id]: r.following }))).catch(() => {})
+      })
     } catch (err: any) {
       setError(err.message || 'Could not load videos')
       setVideos([])
     } finally {
       setLoading(false)
     }
-  }, [tab])
+  }, [tab, currentUser?.id])
 
   useEffect(() => { load() }, [load])
 
@@ -204,13 +258,71 @@ export default function VideoFeedPage() {
   }
 
   const handleShare = async (video: FeedVideo) => {
+    setShareFor(video)
+  }
+
+  const doShareWhatsApp = (video: FeedVideo) => {
     const url = `${window.location.origin}/reels?v=${video.id}`
-    const shareData = { title: video.caption || 'GoSulawesi', text: video.caption || '', url }
+    const text = video.caption || 'Check this out on GoSulawesi!'
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank')
+    api.shareVideo(video.id).catch(() => {})
+    setShareFor(null)
+  }
+
+  const doShareCopy = async (video: FeedVideo) => {
+    const url = `${window.location.origin}/reels?v=${video.id}`
+    try { await navigator.clipboard.writeText(url) } catch {}
+    setShareCopied(true)
+    setTimeout(() => setShareCopied(false), 2000)
+    api.shareVideo(video.id).catch(() => {})
+    setShareFor(null)
+  }
+
+  const doShareNative = async (video: FeedVideo) => {
+    const url = `${window.location.origin}/reels?v=${video.id}`
     try {
-      if (navigator.share) await navigator.share(shareData)
+      if (navigator.share) await navigator.share({ title: video.caption || 'GoSulawesi', text: video.caption || '', url })
       else await navigator.clipboard.writeText(url)
       api.shareVideo(video.id).catch(() => {})
-    } catch { /* user dismissed the share sheet */ }
+    } catch {}
+    setShareFor(null)
+  }
+
+  const handleReport = (video: FeedVideo) => {
+    setReportFor(video)
+  }
+
+  const handleFollow = async (userId: number) => {
+    const isFollowing = followStates[userId]
+    setFollowStates(prev => ({ ...prev, [userId]: !isFollowing }))
+    try {
+      if (isFollowing) await api.unfollowUser(userId)
+      else await api.followUser(userId)
+    } catch {
+      setFollowStates(prev => ({ ...prev, [userId]: isFollowing }))
+    }
+  }
+
+  const handleDoubleTap = (video: FeedVideo) => {
+    if (!video.liked) handleLike(video)
+    setHeartBurst({ id: video.id, key: Date.now() })
+    setTimeout(() => setHeartBurst(null), 1000)
+  }
+
+  const handlePiP = async () => {
+    const el = activeId ? videoRefs.current.get(activeId) : null
+    if (!el) return
+    try {
+      if (document.pictureInPictureElement) await document.exitPictureInPicture()
+      else await el.requestPictureInPicture()
+    } catch {}
+  }
+
+  const handleVideoEnded = (video: FeedVideo) => {
+    const idx = videos.findIndex(v => v.id === video.id)
+    if (idx >= 0 && idx < videos.length - 1) {
+      scrollToIndex(idx + 1)
+    }
   }
 
   const handleDelete = async (video: FeedVideo) => {
@@ -223,7 +335,7 @@ export default function VideoFeedPage() {
     }
   }
 
-  const emptyText = tab === 'saved' ? txt.emptySaved : tab === 'mine' ? txt.emptyMine : txt.empty
+  const emptyText = tab === 'saved' ? txt.emptySaved : tab === 'mine' ? txt.emptyMine : tab === 'following' ? txt.emptyFollowing : txt.empty
 
   return (
     <div className="fixed inset-0 flex flex-col items-center" style={{ background: '#000' }}>
@@ -242,8 +354,8 @@ export default function VideoFeedPage() {
           </svg>
         </button>
 
-        <div className="flex-1 flex items-center justify-center gap-5">
-          {([['foryou', txt.forYou], ['saved', txt.saved], ['mine', txt.mine]] as [Tab, string][]).map(([key, label]) => (
+        <div className="flex-1 flex items-center justify-center gap-4">
+          {([['foryou', txt.forYou], ['following', txt.following], ['saved', txt.saved], ['mine', txt.mine]] as [Tab, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
               className="text-sm border-0 bg-transparent cursor-pointer pb-1 transition-all"
               style={{
@@ -343,14 +455,43 @@ export default function VideoFeedPage() {
               }}
               src={video.video_url}
               poster={video.thumbnail_url || undefined}
-              loop muted={muted} playsInline preload="metadata"
+              loop={false} muted={muted} playsInline preload="metadata"
               className="absolute inset-0 w-full h-full object-cover"
               onClick={e => {
                 const el = e.currentTarget
-                if (el.paused) el.play().catch(() => {})
-                else el.pause()
+                const now = Date.now()
+                const last = (el as any)._lastTap || 0
+                if (now - last < 300) {
+                  handleDoubleTap(video)
+                } else {
+                  if (el.paused) el.play().catch(() => {})
+                  else el.pause()
+                }
+                (el as any)._lastTap = now
               }}
+              onTimeUpdate={e => {
+                const el = e.currentTarget
+                if (el.duration > 0) {
+                  setProgress(prev => ({ ...prev, [video.id]: (el.currentTime / el.duration) * 100 }))
+                }
+              }}
+              onEnded={() => handleVideoEnded(video)}
             />
+
+            {/* Double-tap heart burst animation */}
+            {heartBurst?.id === video.id && (
+              <div key={heartBurst.key} className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                <svg width="100" height="100" viewBox="0 0 24 24" fill="#f43f5e" stroke="#f43f5e" strokeWidth="1"
+                  style={{ animation: 'heartBurst 1s ease-out forwards', filter: 'drop-shadow(0 0 20px rgba(244,63,94,0.6))' }}>
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </div>
+            )}
+
+            {/* Progress bar */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 z-20" style={{ background: 'rgba(255,255,255,0.2)' }}>
+              <div className="h-full transition-all duration-200" style={{ width: `${progress[video.id] || 0}%`, background: 'white', borderRadius: '0 2px 2px 0' }} />
+            </div>
 
             {/* Bottom gradient + meta */}
             <div className="absolute bottom-0 left-0 right-0 pt-16 pb-6 px-4 pointer-events-none"
@@ -368,6 +509,17 @@ export default function VideoFeedPage() {
                   <p className="text-sm font-bold text-white">{video.user_name}</p>
                   {video.views > 0 && (
                     <span className="text-xs" style={{ color: 'rgba(255,255,255,0.65)' }}>· {formatCount(video.views)} views</span>
+                  )}
+                  {currentUser?.id !== video.user_id && (
+                    <button onClick={() => handleFollow(video.user_id)}
+                      className="ml-1 px-3 py-0.5 rounded-full text-xs font-bold border-0 cursor-pointer"
+                      style={{
+                        background: followStates[video.user_id] ? 'rgba(255,255,255,0.15)' : A,
+                        color: 'white',
+                        border: followStates[video.user_id] ? '1px solid rgba(255,255,255,0.3)' : 'none',
+                      }}>
+                      {followStates[video.user_id] ? txt.following2 : txt.follow}
+                    </button>
                   )}
                 </div>
 
@@ -391,18 +543,19 @@ export default function VideoFeedPage() {
                   </button>
                 )}
 
-                {/* Sound attribution with spinning disc */}
+                {/* Sound attribution — clickable to open sound detail */}
                 {video.sound_title && (
-                  <div className="mt-2.5 flex items-center gap-2">
+                  <button onClick={() => setSoundFor(video)}
+                    className="mt-2.5 flex items-center gap-2 border-0 bg-transparent cursor-pointer p-0">
                     <span className="w-7 h-7 rounded-full spin-disc flex items-center justify-center flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)', border: '2px solid rgba(255,255,255,0.3)' }}>
                       <span className="w-2 h-2 rounded-full" style={{ background: '#64748b' }} />
                     </span>
-                    <div className="overflow-hidden">
+                    <div className="overflow-hidden text-left">
                       <p className="text-xs font-bold text-white truncate">{video.sound_title}</p>
                       <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.6)' }}>{video.sound_artist}</p>
                     </div>
-                  </div>
+                  </button>
                 )}
               </div>
             </div>
@@ -452,6 +605,32 @@ export default function VideoFeedPage() {
                   </svg>
                 </span>
               </button>
+
+              {/* PiP button */}
+              {document.pictureInPictureEnabled && (
+                <button onClick={handlePiP}
+                  className="flex flex-col items-center gap-1 border-0 bg-transparent cursor-pointer p-0">
+                  <span className="w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90"
+                    style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(6px)' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                      <rect x="2" y="4" width="20" height="16" rx="2" /><rect x="12" y="11" width="8" height="6" rx="1" fill="white" />
+                    </svg>
+                  </span>
+                </button>
+              )}
+
+              {/* Report button (not on own videos) */}
+              {currentUser?.id !== video.user_id && (
+                <button onClick={() => handleReport(video)}
+                  className="flex flex-col items-center gap-1 border-0 bg-transparent cursor-pointer p-0">
+                  <span className="w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90"
+                    style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(6px)' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" />
+                    </svg>
+                  </span>
+                </button>
+              )}
 
               {currentUser?.id === video.user_id && (
                 <button onClick={() => handleDelete(video)}
@@ -507,6 +686,66 @@ export default function VideoFeedPage() {
 
       {showAnalytics && (
         <AnalyticsSheet txt={txt} onClose={() => setShowAnalytics(false)} />
+      )}
+
+      {/* Share Sheet */}
+      {shareFor && (
+        <div className="fixed inset-0 z-[150] flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShareFor(null)}>
+          <div className="w-full rounded-t-3xl flex flex-col" style={{ background: 'white', paddingBottom: 'env(safe-area-inset-bottom)' }}
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <p className="text-sm font-black" style={{ color: '#111827' }}>{txt.share}</p>
+              <button onClick={() => setShareFor(null)} className="w-7 h-7 rounded-full flex items-center justify-center border-0 bg-transparent cursor-pointer" style={{ color: '#6b7280' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              </button>
+            </div>
+            <div className="flex flex-col gap-1 p-3">
+              <button onClick={() => doShareWhatsApp(shareFor)}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-xl border-0 bg-transparent cursor-pointer text-left hover:bg-gray-50"
+                style={{ color: '#111827' }}>
+                <span className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: '#25D366' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.001-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                </span>
+                <div>
+                  <p className="text-sm font-bold">{txt.shareWhatsApp}</p>
+                </div>
+              </button>
+              <button onClick={() => doShareCopy(shareFor)}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-xl border-0 bg-transparent cursor-pointer text-left hover:bg-gray-50"
+                style={{ color: '#111827' }}>
+                <span className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: '#f3f4f6' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+                </span>
+                <div>
+                  <p className="text-sm font-bold">{txt.shareCopy}</p>
+                  {shareCopied && <p className="text-xs" style={{ color: '#10b981' }}>{txt.shareCopied}</p>}
+                </div>
+              </button>
+              {typeof navigator.share === 'function' && (
+                <button onClick={() => doShareNative(shareFor)}
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-xl border-0 bg-transparent cursor-pointer text-left hover:bg-gray-50"
+                  style={{ color: '#111827' }}>
+                  <span className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: '#f3f4f6' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold">{txt.shareNative}</p>
+                  </div>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Sheet */}
+      {reportFor && (
+        <ReportSheet video={reportFor} txt={txt} onClose={() => setReportFor(null)} />
+      )}
+
+      {/* Sound Detail Sheet */}
+      {soundFor && (
+        <SoundSheet video={soundFor} txt={txt} onClose={() => setSoundFor(null)} />
       )}
       </div>
     </div>
@@ -636,7 +875,7 @@ function AnalyticsSheet({ txt, onClose }: {
 
   useEffect(() => {
     api.getMyVideoStats()
-      .then((res: any) => setData(res))
+      .then((res: any) => setData(res?.aggregate ? res : null))
       .catch(() => setData(null))
       .finally(() => setLoading(false))
   }, [])
@@ -765,4 +1004,162 @@ function AnalyticsSheet({ txt, onClose }: {
       </div>
     </div>
   )
+}
+
+function ReportSheet({ video, txt, onClose }: {
+  video: FeedVideo
+  txt: any
+  onClose: () => void
+}) {
+  const [reason, setReason] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+
+  const reasons = [
+    'Spam or misleading',
+    'Inappropriate content',
+    'Violence or harmful behavior',
+    'Copyright violation',
+    'Other',
+  ]
+
+  const handleSubmit = async () => {
+    if (!reason || submitting) return
+    setSubmitting(true)
+    setMsg(null)
+    try {
+      await api.reportVideo(video.id, reason)
+      setMsg({ type: 'ok', text: txt.reportSuccess })
+      setTimeout(() => onClose(), 1500)
+    } catch (err: any) {
+      const isDup = err?.message?.includes('409')
+      setMsg({ type: 'err', text: isDup ? txt.reportDuplicate : (err.message || 'Error') })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[150] flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+      <div className="w-full rounded-t-3xl flex flex-col" style={{ background: 'white', maxHeight: '70vh' }}
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid #e5e7eb' }}>
+          <p className="text-sm font-black" style={{ color: '#111827' }}>{txt.reportTitle}</p>
+          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center border-0 bg-transparent cursor-pointer" style={{ color: '#6b7280' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          <p className="text-xs mb-3" style={{ color: '#6b7280' }}>{txt.reportHint}</p>
+          <div className="flex flex-col gap-2">
+            {reasons.map(r => (
+              <button key={r} onClick={() => setReason(r)}
+                className="flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer text-left text-sm transition-all"
+                style={{
+                  background: reason === r ? `${A}10` : '#f9fafb',
+                  borderColor: reason === r ? A : 'transparent',
+                  color: '#111827',
+                }}>
+                {r}
+                {reason === r && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>}
+              </button>
+            ))}
+          </div>
+          {msg && (
+            <p className="mt-4 text-xs px-3 py-2.5 rounded-xl" style={{
+              background: msg.type === 'ok' ? '#dcfce7' : '#fee2e2',
+              color: msg.type === 'ok' ? '#15803d' : '#b91c1c',
+            }}>{msg.text}</p>
+          )}
+        </div>
+        <div className="flex gap-3 px-5 py-3 flex-shrink-0" style={{ borderTop: '1px solid #e5e7eb' }}>
+          <button onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold border-0 cursor-pointer"
+            style={{ background: '#f3f4f6', color: '#6b7280' }}>{txt.reportCancel}</button>
+          <button onClick={handleSubmit} disabled={!reason || submitting}
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold border-0 cursor-pointer"
+            style={{ background: submitting ? '#d1d5db' : '#dc2626', color: 'white' }}>{txt.reportSubmit}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SoundSheet({ video, txt, onClose }: {
+  video: FeedVideo
+  txt: any
+  onClose: () => void
+}) {
+  const [soundVideos, setSoundVideos] = useState<FeedVideo[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // We need sound_id — it's not in FeedVideo type but we can search by sound_title
+    // The API supports ?sound_id=N, but we don't have sound_id in the video object
+    // So we'll fetch all videos and filter by sound_title as a fallback
+    api.getVideos()
+      .then(res => {
+        const filtered = (res.videos || []).filter(v => v.sound_title === video.sound_title && v.id !== video.id)
+        setSoundVideos(filtered)
+      })
+      .catch(() => setSoundVideos([]))
+      .finally(() => setLoading(false))
+  }, [video.sound_title, video.id])
+
+  return (
+    <div className="fixed inset-0 z-[150] flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+      <div className="w-full rounded-t-3xl flex flex-col" style={{ background: 'white', maxHeight: '75vh' }}
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid #e5e7eb' }}>
+          <div className="flex items-center gap-3">
+            <span className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)', border: '2px solid rgba(255,255,255,0.3)' }}>
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#64748b' }} />
+            </span>
+            <div>
+              <p className="text-sm font-black" style={{ color: '#111827' }}>{video.sound_title}</p>
+              <p className="text-xs" style={{ color: '#9ca3af' }}>{video.sound_artist}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center border-0 bg-transparent cursor-pointer" style={{ color: '#6b7280' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-3">
+          <p className="text-xs font-bold mb-3" style={{ color: '#6b7280' }}>{txt.soundVideos}</p>
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-7 h-7 rounded-full animate-spin" style={{ border: '3px solid #e5e7eb', borderTopColor: A }} />
+            </div>
+          )}
+          {!loading && soundVideos.length === 0 && (
+            <p className="text-xs text-center py-8" style={{ color: '#9ca3af' }}>{txt.noSoundVideos}</p>
+          )}
+          {!loading && soundVideos.map(v => (
+            <div key={v.id} className="flex items-center gap-3 py-2.5">
+              {v.thumbnail_url ? (
+                <img src={v.thumbnail_url} alt="" className="w-12 h-16 rounded-lg object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-12 h-16 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#e5e7eb' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold truncate" style={{ color: '#111827' }}>{v.caption || `Video by ${v.user_name}`}</p>
+                <p className="text-[10px] mt-0.5" style={{ color: '#9ca3af' }}>{v.user_name} · {formatCount(v.views)} views · {formatCount(v.likes)} likes</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// CSS keyframes for heart burst animation
+const style = document.createElement('style')
+style.textContent = `@keyframes heartBurst { 0% { transform: scale(0); opacity: 0; } 15% { transform: scale(1.2); opacity: 1; } 30% { transform: scale(1); } 100% { transform: scale(1.5); opacity: 0; } }`
+if (!document.getElementById('heart-burst-style')) {
+  style.id = 'heart-burst-style'
+  document.head.appendChild(style)
 }

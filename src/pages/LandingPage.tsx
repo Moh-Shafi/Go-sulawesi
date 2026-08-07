@@ -11,6 +11,14 @@ const SUBTLE = '#9ca3af'
 const BORDER = '#f3f4f6'
 const GOLD = '#f59e0b'
 
+// Apple-style glass constants
+const GLASS = 'rgba(255,255,255,0.65)'
+const GLASS_DARK = 'rgba(255,255,255,0.45)'
+const GLASS_BORDER = 'rgba(255,255,255,0.8)'
+const GLASS_SHADOW = '0 8px 32px rgba(0,0,0,0.08)'
+const GLASS_SHADOW_LG = '0 20px 60px rgba(0,0,0,0.12)'
+const BLUR = 'blur(24px)'
+
 const destinations = [
   { name: 'Danau Tanralili', tag: 'Hidden Lake', city: 'Gowa', price: 'Rp 850rb', img: '/img/Danau Tanralili.jpg' },
   { name: 'Desa Bonto Manai', tag: 'Village Life', city: 'Bantaeng', price: 'Rp 600rb', img: '/img/Desa_Bonto_Manai.jpg' },
@@ -175,15 +183,16 @@ export default function LandingPage() {
   }, [])
 
   return (
-    <div style={{ background: '#ffffff', fontFamily: 'Poppins, Inter, sans-serif', color: TEXT }}>
+    <div style={{ background: 'linear-gradient(180deg, #fff7ed 0%, #ffffff 30%, #ffffff 70%, #fff7ed 100%)', fontFamily: 'Poppins, Inter, sans-serif', color: TEXT }}>
 
       {/* ══════════ NAVBAR ══════════ */}
-      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
         style={{
-          background: scrolled ? 'rgba(255,255,255,0.95)' : 'white',
-          backdropFilter: 'blur(12px)',
-          borderBottom: `1px solid ${scrolled ? BORDER : 'transparent'}`,
-          boxShadow: scrolled ? '0 1px 12px rgba(0,0,0,0.06)' : 'none',
+          background: scrolled ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.5)',
+          backdropFilter: BLUR,
+          WebkitBackdropFilter: BLUR,
+          borderBottom: `1px solid ${scrolled ? 'rgba(255,255,255,0.6)' : 'transparent'}`,
+          boxShadow: scrolled ? '0 4px 30px rgba(0,0,0,0.06)' : 'none',
         }}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 no-underline">
@@ -246,8 +255,11 @@ export default function LandingPage() {
       </nav>
 
       {/* ══════════ HERO ══════════ */}
-      <section className="pt-28 pb-16 px-6" style={{ background: 'linear-gradient(160deg, #fff7ed 0%, #ffffff 60%)' }}>
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+      <section className="pt-28 pb-20 px-6 relative overflow-hidden" style={{ background: 'transparent' }}>
+        {/* Gradient mesh blobs */}
+        <div className="absolute top-20 left-10 w-96 h-96 rounded-full blur-[120px] opacity-40" style={{ background: `radial-gradient(circle, ${A}40, transparent)` }} />
+        <div className="absolute bottom-10 right-20 w-80 h-80 rounded-full blur-[100px] opacity-30" style={{ background: `radial-gradient(circle, ${GOLD}40, transparent)` }} />
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
 
           {/* Left */}
           <div>
@@ -265,7 +277,7 @@ export default function LandingPage() {
             </p>
 
             {/* Search inputs */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-8 p-3 rounded-2xl" style={{ background: 'white', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: `1px solid ${BORDER}` }}>
+            <div className="flex flex-col sm:flex-row gap-3 mb-8 p-3 rounded-2xl" style={{ background: GLASS, backdropFilter: BLUR, WebkitBackdropFilter: BLUR, boxShadow: GLASS_SHADOW, border: `1px solid ${GLASS_BORDER}` }}>
               <div className="flex items-center gap-2 flex-1 px-3 py-2">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
                 <div>
@@ -307,8 +319,8 @@ export default function LandingPage() {
           {/* Right — Image collage */}
           <div className="relative hidden lg:block" style={{ height: 480 }}>
             {/* Badge */}
-            <div className="absolute top-4 left-0 z-10 flex items-center gap-2 px-3 py-2 rounded-2xl shadow-lg"
-              style={{ background: 'white', border: `1px solid ${BORDER}` }}>
+            <div className="absolute top-4 left-0 z-10 flex items-center gap-2 px-3 py-2 rounded-2xl"
+              style={{ background: GLASS, backdropFilter: BLUR, WebkitBackdropFilter: BLUR, boxShadow: GLASS_SHADOW, border: `1px solid ${GLASS_BORDER}` }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: AL }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2"><polyline points="5 12 10 17 20 7"/></svg>
               </div>
@@ -318,19 +330,16 @@ export default function LandingPage() {
               </div>
             </div>
             {/* Main large image */}
-            <div className="absolute top-10 right-0 w-72 h-72 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="absolute top-10 right-0 w-72 h-72 rounded-[2rem] overflow-hidden" style={{ boxShadow: GLASS_SHADOW_LG, border: `2px solid ${GLASS_BORDER}` }}>
               <img src="/img/Danau Tanralili.jpg" alt="" className="w-full h-full object-cover" />
             </div>
-            {/* Bottom left */}
-            <div className="absolute bottom-0 left-8 w-52 h-52 rounded-3xl overflow-hidden shadow-xl">
+            <div className="absolute bottom-0 left-8 w-52 h-52 rounded-[2rem] overflow-hidden" style={{ boxShadow: GLASS_SHADOW, border: `2px solid ${GLASS_BORDER}` }}>
               <img src="/img/Mappaccing Ceremony.jpg" alt="" className="w-full h-full object-cover" />
             </div>
-            {/* Top left small */}
-            <div className="absolute top-8 left-0 w-36 h-36 rounded-3xl overflow-hidden shadow-lg">
+            <div className="absolute top-8 left-0 w-36 h-36 rounded-[1.5rem] overflow-hidden" style={{ boxShadow: GLASS_SHADOW, border: `2px solid ${GLASS_BORDER}` }}>
               <img src="/img/Air Terjun Depa.jpeg" alt="" className="w-full h-full object-cover" />
             </div>
-            {/* Bottom right small */}
-            <div className="absolute bottom-10 right-0 w-44 h-40 rounded-3xl overflow-hidden shadow-lg">
+            <div className="absolute bottom-10 right-0 w-44 h-40 rounded-[1.5rem] overflow-hidden" style={{ boxShadow: GLASS_SHADOW, border: `2px solid ${GLASS_BORDER}` }}>
               <img src="/img/Desa_Bonto_Manai.jpg" alt="" className="w-full h-full object-cover" />
             </div>
             {/* Decorative blob */}
@@ -341,8 +350,11 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════ IMPACT COUNTER ══════════ */}
-      <section className="py-14 px-6" style={{ background: A }}>
-        <div className="max-w-5xl mx-auto">
+      <section className="py-14 px-6 relative overflow-hidden" style={{ background: A }}>
+        {/* Decorative blobs */}
+        <div className="absolute top-0 left-1/4 w-72 h-72 rounded-full blur-[100px] opacity-20" style={{ background: 'white' }} />
+        <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full blur-[80px] opacity-15" style={{ background: GOLD }} />
+        <div className="max-w-5xl mx-auto relative z-10">
           <p className="text-center text-sm font-bold uppercase tracking-widest mb-8 opacity-80" style={{ color: 'white' }}>{t.impactTitle}</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
@@ -360,7 +372,7 @@ export default function LandingPage() {
               )},
             ].map(s => (
               <div key={s.label} className="p-5 rounded-3xl text-center"
-                style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)' }}>
+                style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
                   style={{ background: 'rgba(255,255,255,0.15)' }}>{s.icon}</div>
                 <div className="text-3xl font-black text-white mb-1" style={{ letterSpacing: '-0.03em' }}>
@@ -374,8 +386,9 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════ HOW IT WORKS ══════════ */}
-      <section className="py-20 px-6" style={{ background: '#fafafa' }}>
-        <div className="max-w-5xl mx-auto text-center">
+      <section className="py-20 px-6 relative overflow-hidden" style={{ background: 'transparent' }}>
+        <div className="absolute top-10 right-1/4 w-80 h-80 rounded-full blur-[120px] opacity-20" style={{ background: `radial-gradient(circle, ${A}30, transparent)` }} />
+        <div className="max-w-5xl mx-auto text-center relative z-10">
           <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: A }}>{t.howItWorksLabel}</p>
           <h2 className="text-3xl font-black mb-3" style={{ color: TEXT, letterSpacing: '-0.02em' }}>{t.howItWorksTitle}</h2>
           <p className="text-sm max-w-md mx-auto mb-14" style={{ color: MUTED }}>{t.howItWorksSub}</p>
@@ -392,10 +405,10 @@ export default function LandingPage() {
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
               )},
             ].map((item, i) => (
-              <div key={i} className="relative flex flex-col items-center p-6 rounded-3xl"
-                style={{ background: 'white', border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.05)' }}>
+              <div key={i} className="relative flex flex-col items-center p-8 rounded-[2rem]"
+                style={{ background: GLASS, backdropFilter: BLUR, WebkitBackdropFilter: BLUR, border: `1px solid ${GLASS_BORDER}`, boxShadow: GLASS_SHADOW }}>
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
-                  style={{ background: AL }}>
+                  style={{ background: 'rgba(255,255,255,0.7)', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
                   {item.icon}
                 </div>
                 <span className="text-xs font-black mb-3 px-3 py-1 rounded-full" style={{ background: `${A}15`, color: A }}>STEP {item.step}</span>
@@ -467,18 +480,19 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════ FEATURES ══════════ */}
-      <section className="py-20 px-6" style={{ background: '#fafafa' }}>
-        <div className="max-w-7xl mx-auto">
+      <section className="py-20 px-6 relative overflow-hidden" style={{ background: 'transparent' }}>
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full blur-[140px] opacity-15" style={{ background: `radial-gradient(circle, ${A}30, transparent)` }} />
+        <div className="max-w-7xl mx-auto relative z-10">
           <p className="text-xs font-bold uppercase tracking-widest mb-3 text-center" style={{ color: A }}>What We Give —</p>
           <h2 className="text-3xl font-black text-center mb-12" style={{ color: TEXT, letterSpacing: '-0.02em' }}>
             {t.featuresTitle}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {features.map((f, i) => (
-              <div key={i} className="p-6 rounded-2xl group hover:shadow-lg transition-all duration-300"
-                style={{ background: 'white', border: `1px solid ${BORDER}` }}>
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-colors duration-200"
-                  style={{ background: AL, color: A }}>
+              <div key={i} className="p-7 rounded-[1.5rem] group transition-all duration-500 hover:scale-[1.03]"
+                style={{ background: GLASS, backdropFilter: BLUR, WebkitBackdropFilter: BLUR, border: `1px solid ${GLASS_BORDER}`, boxShadow: GLASS_SHADOW }}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300"
+                  style={{ background: 'rgba(255,255,255,0.7)', color: A, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
                   {f.icon}
                 </div>
                 <h3 className="text-sm font-bold mb-2" style={{ color: TEXT }}>{t.features[i]}</h3>
@@ -502,7 +516,7 @@ export default function LandingPage() {
 
           {/* Search bar */}
           <div className="flex flex-wrap gap-3 items-center justify-center mb-10 p-4 rounded-2xl max-w-3xl mx-auto"
-            style={{ background: '#fafafa', border: `1px solid ${BORDER}` }}>
+            style={{ background: GLASS, backdropFilter: BLUR, WebkitBackdropFilter: BLUR, border: `1px solid ${GLASS_BORDER}`, boxShadow: GLASS_SHADOW }}>
             {[
               { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>, label: lang === 'id' ? 'Lokasi' : 'Location', hint: lang === 'id' ? 'Pilih wilayah' : 'Choose region' },
               { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>, label: lang === 'id' ? 'Orang' : 'Person', hint: '1 person' },
@@ -525,16 +539,16 @@ export default function LandingPage() {
           {/* Destination grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             {destinations.map((d, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden cursor-pointer group relative"
-                style={{ height: 220, boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+              <div key={i} className="rounded-[1.5rem] overflow-hidden cursor-pointer group relative"
+                style={{ height: 240, boxShadow: GLASS_SHADOW_LG, border: `2px solid ${GLASS_BORDER}` }}>
                 <img src={d.img} alt={d.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 50%)' }} />
                 <div className="absolute top-3 left-3">
-                  <span className="text-xs px-2.5 py-1 rounded-full font-bold text-white" style={{ background: A }}>{d.tag}</span>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-bold" style={{ background: GLASS, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', color: A, border: '1px solid rgba(255,255,255,0.6)' }}>{d.tag}</span>
                 </div>
                 <div className="absolute top-3 right-3">
-                  <span className="text-xs px-2.5 py-1 rounded-full font-bold" style={{ background: 'white', color: A }}>{d.price}</span>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-bold" style={{ background: GLASS, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', color: TEXT, border: '1px solid rgba(255,255,255,0.6)' }}>{d.price}</span>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="text-white font-bold text-sm">{d.name}</p>

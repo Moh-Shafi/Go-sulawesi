@@ -217,10 +217,12 @@ export const api = {
   getStats: () => request('/stats'),
 
   // ── Social Videos ──
-  getVideos: (params?: { mine?: boolean; saved?: boolean }) => {
+  getVideos: (params?: { mine?: boolean; saved?: boolean; following?: boolean; sound_id?: number }) => {
     const qs = new URLSearchParams()
     if (params?.mine) qs.set('mine', '1')
     if (params?.saved) qs.set('saved', '1')
+    if (params?.following) qs.set('following', '1')
+    if (params?.sound_id) qs.set('sound_id', String(params.sound_id))
     const suffix = qs.toString() ? `?${qs.toString()}` : ''
     return request<{ videos: FeedVideo[] }>(`/videos${suffix}`)
   },
@@ -251,6 +253,18 @@ export const api = {
     request(`/videos/${videoId}/comments?comment_id=${commentId}`, { method: 'DELETE' }),
   countVideoView: (id: number) => request(`/videos/${id}/view`, { method: 'POST' }),
   shareVideo: (id: number) => request(`/videos/${id}/share`, { method: 'POST' }),
+  reportVideo: (videoId: number, reason: string) =>
+    request(`/videos/report`, { method: 'POST', body: JSON.stringify({ video_id: videoId, reason }) }),
+  getVideosBySound: (soundId: number) =>
+    request<{ videos: FeedVideo[] }>(`/videos?sound_id=${soundId}`),
+  followUser: (followingId: number) =>
+    request<{ following: boolean }>('/follow', { method: 'POST', body: JSON.stringify({ following_id: followingId }) }),
+  unfollowUser: (followingId: number) =>
+    request<{ following: boolean }>('/follow?action=unfollow', { method: 'POST', body: JSON.stringify({ following_id: followingId }) }),
+  checkFollowing: (followingId: number) =>
+    request<{ following: boolean }>(`/follow?following_id=${followingId}`),
+  getFollowingList: (followerId: number) =>
+    request<{ following: any[] }>(`/follow?follower_id=${followerId}`),
   getSounds: () => request<{ sounds: VideoSound[] }>('/videos/sounds'),
   getVideoStats: (videoId: number) => request<{ video_id: number; totals: VideoStatsTotals; daily: VideoDailyStat[] }>(`/videos/stats?video_id=${videoId}`),
   getMyVideoStats: () => request<{ aggregate: VideoStatsTotals & { total_videos: number }; top_videos: VideoTopVideo[]; daily: VideoDailyStat[] }>(`/videos/stats?mine=1`),
