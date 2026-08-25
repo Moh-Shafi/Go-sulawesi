@@ -54,6 +54,7 @@ function App() {
         <Route path="/destination/:id" element={<DestinationDetailPage />} />
         <Route path="/itinerary" element={<ItineraryBuilder />} />
         <Route path="/business" element={<RequireRole role="local"><BusinessDashboard /></RequireRole>} />
+        <Route path="/business/reels" element={<RequireRole role="local"><VideoFeedPage /></RequireRole>} />
         <Route path="/business/:id" element={<BusinessDetailPage />} />
         <Route path="/business/listings" element={<RequireRole role="local"><BusinessListingsPage /></RequireRole>} />
         <Route path="/business/promotions" element={<RequireRole role="local"><BusinessPromotionsPage /></RequireRole>} />

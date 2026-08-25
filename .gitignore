@@ -44,3 +44,6 @@ tourist-reviews-summary.md
 
 # User-uploaded content
 backend/uploads/
+
+# Local docker compose port overrides (machine-specific)
+docker-compose.override.yml
