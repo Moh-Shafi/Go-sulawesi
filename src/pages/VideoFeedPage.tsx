@@ -55,6 +55,7 @@ const t: Record<Lang, any> = {
     soundVideos: 'Videos using this sound',
     noSoundVideos: 'No other videos use this sound yet',
     pip: 'Picture in Picture',
+    business: 'BUSINESS',
   },
   id: {
     forYou: 'Untukmu',
@@ -104,6 +105,7 @@ const t: Record<Lang, any> = {
     soundVideos: 'Video dengan suara ini',
     noSoundVideos: 'Belum ada video lain yang menggunakan suara ini',
     pip: 'Gambar dalam Gambar',
+    business: 'BISNIS',
   },
 }
 
@@ -346,7 +348,7 @@ export default function VideoFeedPage() {
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center gap-2 px-3 pt-3 pb-6"
         style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)' }}>
-        <button onClick={() => navigate('/tourist')}
+        <button onClick={() => navigate(currentUser?.role === 'local' ? '/business' : '/tourist')}
           className="w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer flex-shrink-0"
           style={{ background: 'rgba(255,255,255,0.15)', color: 'white' }} aria-label={txt.back}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -507,6 +509,13 @@ export default function VideoFeedPage() {
                     </span>
                   )}
                   <p className="text-sm font-bold text-white">{video.user_name}</p>
+                  {video.business_name && (
+                    <span className="ml-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-black text-white"
+                      style={{ background: 'rgba(234,88,12,0.9)', letterSpacing: '0.02em' }}>
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                      {txt.business}
+                    </span>
+                  )}
                   {video.views > 0 && (
                     <span className="text-xs" style={{ color: 'rgba(255,255,255,0.65)' }}>· {formatCount(video.views)} views</span>
                   )}

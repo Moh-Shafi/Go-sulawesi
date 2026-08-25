@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { api, getStoredUser, clearToken } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 import BusinessBottomNav from './BusinessBottomNav'
+import ReelsNavIcon from './ReelsNavIcon'
 
 const A = '#ea580c'
 const AL = '#fff7ed'
@@ -32,6 +33,9 @@ const navMain = [
       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
       <circle cx="12" cy="9" r="2.5"/>
     </svg>
+  )},
+  { id: 'reels', labelKey: 'reels', path: '/business/reels', icon: (active: boolean) => (
+    <ReelsNavIcon active={active} />
   )},
   { id: 'bookings', labelKey: 'bookings', path: '/business/bookings', icon: (_a: boolean) => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -66,6 +70,7 @@ const t: Record<Lang, any> = {
     manage: 'Manage',
     overview: 'Overview',
     myListings: 'My Listings',
+    reels: 'Reels',
     bookings: 'Bookings',
     earnings: 'Earnings',
     reviews: 'Reviews',
@@ -81,6 +86,7 @@ const t: Record<Lang, any> = {
     manage: 'Kelola',
     overview: 'Ikhtisar',
     myListings: 'Daftar Saya',
+    reels: 'Reels',
     bookings: 'Pemesanan',
     earnings: 'Pendapatan',
     reviews: 'Ulasan',
@@ -160,16 +166,22 @@ export default function BusinessLayout({ children, rightPanel, hideSearch, hideR
           <div className="space-y-1">
             {navMain.map(item => {
               const isActive = activeNav === item.id
+              const isReels = item.id === 'reels'
               return (
                 <Link key={item.id} to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className="w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-base text-left no-underline transition-all"
+                  className={`w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-base text-left no-underline transition-all ${isReels && !isActive ? 'reels-nav-row' : ''}`}
                   style={{ background: isActive ? AL : 'transparent', color: isActive ? A : TEXT, fontWeight: isActive ? 700 : 400 }}>
                   <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl transition-all"
                     style={{ background: isActive ? A : 'transparent', color: isActive ? 'white' : MUTED }}>
                     {item.icon(isActive)}
                   </span>
-                  {txt[item.labelKey]}
+                  <span className="flex items-center gap-2">
+                    {txt[item.labelKey]}
+                    {isReels && !isActive && (
+                      <span className="reels-badge text-[9px] font-black px-1.5 py-0.5 rounded-full text-white" style={{ background: '#ef4444', letterSpacing: '0.02em' }}>NEW</span>
+                    )}
+                  </span>
                 </Link>
               )
             })}

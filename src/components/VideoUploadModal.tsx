@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { api, type VideoSound } from '../lib/api'
+import { api, getStoredUser, type VideoSound } from '../lib/api'
 import { useLang, type Lang } from '../hooks/useLang'
 
 const A = '#0d9488'
@@ -99,8 +99,17 @@ export default function VideoUploadModal({ open, onClose, onUploaded }: Props) {
 
   useEffect(() => {
     if (!open) return
+    const currentUser = getStoredUser()
     api.getBusinesses()
-      .then((res: any) => setBusinesses(res.businesses || []))
+      .then((res: any) => {
+        const list = res.businesses || []
+        setBusinesses(list)
+        // Local role: auto-tag the business if they have exactly one.
+        // Tourists still pick from the full list to tag a place they visited.
+        if (currentUser?.role === 'local' && list.length === 1) {
+          setBusinessId(String(list[0].id))
+        }
+      })
       .catch(() => setBusinesses([]))
     api.getSounds()
       .then((res: any) => setSounds(res.sounds || []))
