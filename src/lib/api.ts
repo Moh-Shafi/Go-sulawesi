@@ -1,15 +1,20 @@
 const API_BASE = '/api'
 
-function getToken(): string | null {
-  return localStorage.getItem('gosulawesi_token')
-}
+// Token stored in memory (primary) + localStorage (for page refresh persistence).
+// Backend also sets an httpOnly cookie for production same-origin XSS resistance.
+// verify_token() checks cookie first, then Authorization header.
+let authToken: string | null = localStorage.getItem('gosulawesi_token')
 
 export function setToken(token: string) {
+  authToken = token
   localStorage.setItem('gosulawesi_token', token)
 }
 
 export function clearToken() {
+  authToken = null
   localStorage.removeItem('gosulawesi_token')
+  // Clear the httpOnly cookie via backend endpoint (best-effort, fire-and-forget)
+  fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {})
 }
 
 export function getStoredUser() {
@@ -25,19 +30,20 @@ async function request<T = any>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = getToken()
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...((options.headers as Record<string, string>) || {}),
   }
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+  // Send token as Authorization header (works through Vite proxy in dev)
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`
   }
 
   console.log(`[API] ${options.method || 'GET'} ${path}`)
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
+    credentials: 'include', // also send httpOnly cookie (production same-origin)
   })
 
   const data = await res.json().catch(() => ({}))
@@ -88,14 +94,12 @@ export const api = {
   deleteUser: (id: number) =>
     request(`/users/${id}/delete`, { method: 'DELETE' }),
   uploadAvatar: async (id: number, file: File): Promise<{ message: string; avatar: string }> => {
-    const token = getToken()
     const formData = new FormData()
     formData.append('avatar', file)
     const res = await fetch(`${API_BASE}/users/${id}/avatar`, {
       method: 'POST',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      credentials: 'include',
       body: formData,
     })
     const data = await res.json().catch(() => ({}))
@@ -114,14 +118,12 @@ export const api = {
   deleteBusiness: (id: number) =>
     request(`/businesses/${id}`, { method: 'DELETE' }),
   uploadBusinessImage: async (id: number, file: File): Promise<{ message: string; image_url: string }> => {
-    const token = getToken()
     const formData = new FormData()
     formData.append('image', file)
     const res = await fetch(`${API_BASE}/businesses/${id}/image`, {
       method: 'POST',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      credentials: 'include',
       body: formData,
     })
     const data = await res.json().catch(() => ({}))
@@ -182,14 +184,12 @@ export const api = {
   deletePromotion: (id: number) =>
     request(`/promotions/${id}`, { method: 'DELETE' }),
   uploadPromotionImage: async (id: number, file: File): Promise<{ message: string; image_url: string }> => {
-    const token = getToken()
     const formData = new FormData()
     formData.append('image', file)
     const res = await fetch(`${API_BASE}/promotions/${id}/image`, {
       method: 'POST',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      credentials: 'include',
       body: formData,
     })
     const data = await res.json().catch(() => ({}))
@@ -272,13 +272,13 @@ export const api = {
     file: File,
     thumbnail?: Blob | null
   ): Promise<{ message: string; video_url: string; thumbnail_url?: string }> => {
-    const token = getToken()
     const formData = new FormData()
     formData.append('video', file)
     if (thumbnail) formData.append('thumbnail', thumbnail, 'poster.jpg')
     const res = await fetch(`${API_BASE}/videos/upload`, {
       method: 'POST',
-      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      credentials: 'include',
       body: formData,
     })
     const raw = await res.text()

@@ -35,6 +35,7 @@ temp_*.js
 # Production credentials
 backend/.env.php
 .env.php
+backend/.dev_token_secret
 
 # Non-project files
 *.pptx

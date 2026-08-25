@@ -57,6 +57,7 @@ if ($role === 'local') {
 }
 
 $token = generate_token($user_id, $role);
+set_auth_cookie($token);
 
 // Fetch created user
 $stmt = db()->prepare('SELECT id, name, email, role, avatar, phone FROM users WHERE id = ?');

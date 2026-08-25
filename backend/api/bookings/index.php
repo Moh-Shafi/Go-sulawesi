@@ -49,7 +49,7 @@ if ($method === 'POST') {
         $body['destination_id'] ?? null,
         $body['business_id'] ?? null,
         $body['booking_date'] ?? date('Y-m-d'),
-        $body['status'] ?? 'pending',
+        'pending', // always starts as pending — status is managed by business/admin
         $body['total_price'] ?? 0.00,
         $body['notes'] ?? null,
     ]);

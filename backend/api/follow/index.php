@@ -3,7 +3,7 @@
 // POST /api/follow?action=unfollow -> unfollow
 // GET  /api/follow?following_id=N -> check if following
 // GET  /api/follow?follower_id=N  -> list who a user follows
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../../config.php';
 
 $user = require_auth();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -51,6 +51,10 @@ if ($method === 'GET') {
     }
 
     if ($followerId) {
+        // Only the user themselves or admin can see who they follow
+        if ($followerId !== (int) $user['user_id'] && $user['role'] !== 'admin') {
+            json_response(403, ['error' => 'You can only view your own following list']);
+        }
         // List who this user follows
         $stmt = db()->prepare('
             SELECT u.id, u.name, u.avatar, u.role, b.business_name

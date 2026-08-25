@@ -34,11 +34,30 @@ if ($method === 'POST') {
         json_response(400, ['error' => 'Rating must be 1-5']);
     }
 
+    $destinationId = $body['destination_id'] ?? null;
+    $businessId = $body['business_id'] ?? null;
+
+    // Verify the user has a completed booking for this destination or business
+    // before allowing them to post a review (prevents fake reviews)
+    if ($businessId) {
+        $bookingCheck = db()->prepare("SELECT id FROM bookings WHERE user_id = ? AND business_id = ? AND status = 'completed'");
+        $bookingCheck->execute([$user['user_id'], $businessId]);
+    } elseif ($destinationId) {
+        $bookingCheck = db()->prepare("SELECT id FROM bookings WHERE user_id = ? AND destination_id = ? AND status = 'completed'");
+        $bookingCheck->execute([$user['user_id'], $destinationId]);
+    } else {
+        json_response(400, ['error' => 'Must specify business_id or destination_id']);
+    }
+
+    if (!$bookingCheck->fetch()) {
+        json_response(403, ['error' => 'You can only review places you have completed a booking with']);
+    }
+
     $stmt = db()->prepare('INSERT INTO reviews (user_id, destination_id, business_id, rating, comment) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([
         $user['user_id'],
-        $body['destination_id'] ?? null,
-        $body['business_id'] ?? null,
+        $destinationId,
+        $businessId,
         $rating,
         $body['comment'] ?? null,
     ]);
