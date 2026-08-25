@@ -35,7 +35,12 @@ if ($current['role'] === 'admin') {
     json_response(403, ['error' => 'Forbidden']);
 }
 
-$allowed = ['booking_date', 'status', 'total_price', 'notes', 'destination_id', 'business_id'];
+// Tourists can only update date/notes; status is managed by business/admin
+if ($current['role'] === 'tourist') {
+    $allowed = ['booking_date', 'notes', 'destination_id'];
+} else {
+    $allowed = ['booking_date', 'status', 'total_price', 'notes', 'destination_id', 'business_id'];
+}
 $fields = [];
 $values = [];
 

@@ -79,11 +79,11 @@ function EyeOffIcon() {
   )
 }
 
-const DEMO_ACCOUNTS = [
+const DEMO_ACCOUNTS = import.meta.env.DEV ? [
   { email: 'admin@gosulawesi.id',   password: 'admin123',   redirect: '/admin',   role: 'Admin' },
   { email: 'tourist@gosulawesi.id', password: 'tourist123', redirect: '/tourist', role: 'Tourist' },
   { email: 'local@gosulawesi.id',   password: 'local123',   redirect: '/business', role: 'Local' },
-]
+] : []
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -218,7 +218,8 @@ export default function LoginPage() {
                 style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626' }}>{error}</div>
             )}
 
-            {/* Test accounts hint */}
+            {/* Test accounts hint — dev only */}
+            {DEMO_ACCOUNTS.length > 0 && (
             <div className="rounded-xl p-3 text-xs space-y-1" style={{ background: AL, border: `1px solid ${A}22` }}>
               <p className="font-semibold mb-1" style={{ color: A }}>{txt.demo}</p>
               {DEMO_ACCOUNTS.map((acc) => (
@@ -231,6 +232,7 @@ export default function LoginPage() {
                 </button>
               ))}
             </div>
+            )}
 
             {/* Login btn */}
             <button type="submit" disabled={loading}
