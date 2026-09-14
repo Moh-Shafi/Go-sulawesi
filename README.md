@@ -257,13 +257,15 @@ App runs at → **http://localhost:5173**
 
 ---
 
-## Demo Accounts
+## User Roles & Access Architecture
 
-| Role | Email | Password |
-|---|---|---|
-|  Admin | `admin@gosulawesi.id` | `admin123` |
-|  Tourist | `tourist@gosulawesi.id` | `tourist123` |
-|  Local Business | `local@gosulawesi.id` | `local123` |
+Access levels are partitioned into three dedicated roles:
+- **Admin**: Full platform governance, guide accreditation, platform reports, and destination management.
+- **Local Business**: Provider dashboard, listings management, booking handling, promotions, and earnings.
+- **Tourist**: Exploration, booking tours, submitting verified reviews, and building custom itineraries.
+
+> [!NOTE]
+> For development testing, mock seed data can be populated via `php database/seed.php`. In production environments, all accounts are registered securely via the `/signup` onboarding workflow with unique salted password hashes.
 
 ---
 
@@ -409,4 +411,5 @@ Made with  for South Sulawesi, Indonesia
 **GoSulawesi** · *Hidden Experiences*
 
 </div>
+
 
