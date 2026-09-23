@@ -1,519 +1,415 @@
-<div align="center">
+﻿<div align="center">
 
-<img src="logo.jpeg" alt="GoSulawesi Logo" width="120" />
+<img src="./public/logo/logo-256.png" alt="GoSulawesi Logo" width="320" />
 
-# 🌴 GoSulawesi
+# React JS Real-Time API · Full Stack Web Application
 
-### Discover the Hidden Paradise of Sulawesi, Indonesia
+### GoSulawesi — Hidden Experiences Platform
 
-[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge\&logo=react\&logoColor=white)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=for-the-badge\&logo=typescript\&logoColor=white)](https://www.typescriptlang.org)
-[![PHP](https://img.shields.io/badge/PHP-8.x-777BB4?style=for-the-badge\&logo=php\&logoColor=white)](https://www.php.net)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge\&logo=mysql\&logoColor=white)](https://www.mysql.com)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge\&logo=docker\&logoColor=white)](https://www.docker.com)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-4.x-38BDF8?style=for-the-badge\&logo=tailwindcss\&logoColor=white)](https://tailwindcss.com)
+A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with authentic hidden destinations and local businesses across Sulawesi, Indonesia. Includes a TikTok-style Reels video feed with background music, advanced analytics, real-time chat, promotional campaigns, and a cancellation policy system with refund calculation.
 
-**GoSulawesi** is a full-stack tourism marketplace connecting travelers with local businesses, guides, and destinations across Sulawesi, Indonesia.
-
-The platform combines destination discovery, local business listings, bookings, reviews, messaging, travel planning, and role-based management into a single web application.
-
-[🌐 Live Platform](#) · [🎨 Frontend Repository](https://github.com/Moh-Shafi/Go-sulawesi-frontend) · [⚙️ Backend Repository](https://github.com/Moh-Shafi/Go-sulawesi-backend)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
 
 </div>
 
 ---
 
-# 📋 Table of Contents
+## Screenshots — Desktop
 
-* [About GoSulawesi](#-about-gosulawesi)
-* [Platform Features](#-platform-features)
-* [System Architecture](#-system-architecture)
-* [Repository Ecosystem](#-repository-ecosystem)
-* [User Roles](#-user-roles)
-* [Security Architecture](#-production-security-architecture)
-* [White-Hat Security Audit](#-white-hat-security-audit)
-* [Technology Stack](#-technology-stack)
-* [Development Setup](#-development-setup)
-* [Production Deployment](#-production-deployment)
-* [Roadmap](#-roadmap)
-* [Project Background](#-project-background)
-* [Developer](#-developer)
+<table>
+  <tr>
+    <td align="center"><b>Landing Page — Hero</b></td>
+    <td align="center"><b>Traveler Stories</b></td>
+  </tr>
+  <tr>
+    <td><img src="./Foto/1-pc.png" alt="Landing Page" /></td>
+    <td><img src="./Foto/2-pc.png" alt="Testimonials" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Sign Up — Dual Role</b></td>
+    <td align="center"><b>Admin Dashboard</b></td>
+  </tr>
+  <tr>
+    <td><img src="./Foto/3-pc.png" alt="Sign Up" /></td>
+    <td><img src="./Foto/4-pc.png" alt="Admin Dashboard" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Tourist Dashboard</b></td>
+    <td align="center"><b>Business Dashboard</b></td>
+  </tr>
+  <tr>
+    <td><img src="./Foto/5-pc.png" alt="Tourist Dashboard" /></td>
+    <td><img src="./Foto/6-pc.png" alt="Business Dashboard" /></td>
+  </tr>
+</table>
 
 ---
 
-# 🌴 About GoSulawesi
+## Screenshots — Mobile
 
-GoSulawesi is a tourism technology platform designed to make it easier for travelers to discover destinations and connect with local businesses across Sulawesi.
+<p align="center">
+  <img src="./Foto/1-app.png" width="18%" alt="Landing Mobile" />
+  <img src="./Foto/2-app.png" width="18%" alt="Testimonials Mobile" />
+  <img src="./Foto/3-app.png" width="18%" alt="SignUp Mobile" />
+  <img src="./Foto/8-app.png" width="18%" alt="Tourist Dashboard Mobile" />
+  <img src="./Foto/9-app.png" width="18%" alt="Explore Mobile" />
+</p>
+<p align="center">
+  <img src="./Foto/4-app.png" width="18%" alt="Admin Dashboard Mobile" />
+  <img src="./Foto/5-app.png" width="18%" alt="Admin Users Mobile" />
+  <img src="./Foto/6-app.png" width="18%" alt="Admin Listings Mobile" />
+  <img src="./Foto/10-app.png" width="18%" alt="Business Dashboard Mobile" />
+  <img src="./Foto/11-app.png" width="18%" alt="Business Listings Mobile" />
+</p>
 
-Instead of separating destination discovery, business discovery, communication, and booking across different services, GoSulawesi brings these experiences together in one platform.
+---
 
-### The platform connects:
+## Architecture Overview
 
-```text
-┌──────────────────┐
-│     Tourists     │
-│                  │
-│ Discover • Plan  │
-│ Book • Review    │
-└────────┬─────────┘
-         │
-         ▼
-┌─────────────────────────────┐
-│        GoSulawesi           │
-│                             │
-│ Discovery • Marketplace     │
-│ Booking • Messaging         │
-│ Reviews • Travel Planning   │
-└─────────────┬───────────────┘
-              │
-              ▼
-┌─────────────────────────────┐
-│ Local Businesses & Guides   │
-│                             │
-│ Listings • Bookings         │
-│ Customers • Content         │
-└─────────────────────────────┘
+```
+
+                     GoSulawesi Platform                      
+
+   Frontend (Vite)             Backend (PHP + MySQL)        
+   localhost:5173                localhost:8082             
+                                                            
+  React 19 + TS 6        RESTful API (PHP 8.3 + Apache)    
+  Tailwind CSS 4         MySQL 8.0 Database                 
+  React Router 7         JWT-like Auth Tokens               
+  Custom Hooks           Docker Compose                     
+
 ```
 
 ---
 
-# ✨ Platform Features
-
-### 🗺️ Destination Discovery
-
-Explore tourism destinations across Sulawesi with:
-
-* Destination information
-* Rich media
-* Videos
-* Travel-related content
-* Location information
-
-### 🎬 Reels & Video Feed
-
-A short-form travel content experience for discovering:
-
-* Destinations
-* Local experiences
-* Tourism content
-* Local creators
-
-### 🤝 Local Business Marketplace
-
-Local businesses can create and manage their presence on the platform.
-
-Examples include:
-
-* Hotels
-* Restaurants
-* Tour operators
-* Local experiences
-* Tourism services
-
-### 📅 Booking System
-
-Tourists can:
-
-* Create bookings
-* Manage reservations
-* Track booking status
-* Communicate with businesses
-
-Businesses can:
-
-* View bookings
-* Manage reservation status
-* Manage customer interactions
-
-### 🧭 Itinerary Builder
-
-Users can organize destinations and activities into personalized travel plans.
-
-### 💬 Messaging
-
-Direct communication between tourists and local businesses.
-
-### ⭐ Reviews & Ratings
-
-The review system supports authenticated user reviews with eligibility checks based on completed bookings.
-
-### 📊 Multi-Role Portals
-
-Dedicated experiences for:
-
-* 🧳 Tourists
-* 🏪 Local Businesses
-* 🛡️ Administrators
-
----
-
-# 🏗️ System Architecture
-
-GoSulawesi follows a separated frontend/backend architecture.
-
-```text
-                         GoSulawesi Platform
-                                │
-                ┌───────────────┴───────────────┐
-                │                               │
-                ▼                               ▼
-       React + TypeScript                PHP REST API
-       Vite + TailwindCSS                Authentication
-                │                         Business Logic
-                │                         Authorization
-                │                               │
-                │                               ▼
-                │                          MySQL 8
-                │
-                └──────── HTTPS / REST ─────────┘
-```
+## Tech Stack — Full Detail
 
 ### Frontend
-
-* React 19
-* TypeScript
-* Vite
-* TailwindCSS
-* Responsive web interface
-* Role-specific dashboards
+| Technology | Version | Usage |
+|---|---|---|
+| **React** | 19 | UI framework with functional components & hooks |
+| **TypeScript** | 6 | Static typing across all components and API calls |
+| **Vite** | 8 | Lightning-fast dev server and production build |
+| **Tailwind CSS** | 4 | Utility-first responsive styling |
+| **React Router DOM** | 7 | Client-side routing with protected routes |
+| **Custom Hooks** | — | `useLang` for EN/ID language switching |
+| **localStorage API** | — | Token, user session, preferences, saved places |
 
 ### Backend
+| Technology | Version | Usage |
+|---|---|---|
+| **PHP** | 8.3 | REST API with PDO and prepared statements |
+| **Apache** | 2.4 | Web server with `.htaccess` URL rewriting |
+| **MySQL** | 8.0 | Relational database (15 core tables) |
+| **PDO** | — | Secure parameterized queries |
+| **Custom JWT** | — | HMAC-SHA256 token auth (7-day expiry) |
 
-* PHP 8
-* Custom REST API
-* Apache
-* PDO
-* Server-side authorization
-* Authentication middleware
-
-### Database
-
-* MySQL 8
-* Relational data model
-* Prepared SQL statements
-* Transaction-oriented booking workflows
-
----
-
-# 📦 Repository Ecosystem
-
-| Repository                                                                    | Description                           | Technology                              |
-| :---------------------------------------------------------------------------- | :------------------------------------ | :-------------------------------------- |
-| [**Go-sulawesi**](https://github.com/Moh-Shafi/Go-sulawesi)                   | Main project overview & documentation | Full Stack                              |
-| [**Go-sulawesi-frontend**](https://github.com/Moh-Shafi/Go-sulawesi-frontend) | Client-side web application           | React 19, TypeScript, Vite, TailwindCSS |
-| [**Go-sulawesi-backend**](https://github.com/Moh-Shafi/Go-sulawesi-backend)   | REST API & database engine            | PHP 8, MySQL 8, Apache, Docker          |
+### Infrastructure
+| Technology | Usage |
+|---|---|
+| **Docker Compose** | Orchestrates PHP, MySQL, phpMyAdmin containers |
+| **phpMyAdmin** | Database management UI at `localhost:8081` |
+| **Python (Pillow)** | Logo resizing and background removal scripts |
 
 ---
 
-# 👥 User Roles
+## Project Structure
 
-## 🧳 Tourist
+```
+Go-sulawesi/
+  backend/
+    api/
+       auth/          → login · register · me
+       bookings/      → CRUD bookings
+       cancellations/ → cancellation policies + requests
+       businesses/    → CRUD local businesses
+       chat/          → real-time messaging (tourist ↔ business)
+       dashboard/     → platform stats
+       destinations/  → CRUD destinations
+       promotions/    → CRUD promotional campaigns
+       reviews/       → reviews & ratings
+       users/         → CRUD users + avatar upload
+       videos/        → Reels feed · upload · sounds · stats · likes · comments
+       stats.php      → public stats (live counters)
+    config.php         → DB config, CORS, auth helpers
+    database/
+       init.sql       → schema + seed destinations
+       videos.sql     → video tables schema
+       videos-v2.sql  → sounds + daily stats migration
+       migrate-*.php  → migration runners
+    sounds/            → 8 royalty-free MP3 tracks for Reels
+    Dockerfile
 
-* Discover destinations
-* Browse businesses
-* Create bookings
-* Manage reservations
-* Send messages
-* Submit eligible reviews
-* Build travel itineraries
-* Follow other users
+  src/
+    components/
+       TouristLayout.tsx     → tourist sidebar + top bar
+       BusinessLayout.tsx    → business sidebar + top bar
+       AdminLayout.tsx       → admin sidebar + top bar
+       TouristBottomNav.tsx  → mobile nav (tourist)
+       BusinessBottomNav.tsx → mobile nav (business)
+       ReelsNavIcon.tsx      → animated Reels video icon
+       VideoUploadModal.tsx  → video upload + sound picker with preview
+       ChatWidget.tsx        → floating chat widget
+       BusinessHoursEditor.tsx → business hours editor
+       CancellationPolicyEditor.tsx → cancellation policy editor
+       RequireRole.tsx       → role-based access guard
+   
+    pages/
+       LandingPage.tsx / LandingPageV2.tsx
+       LoginPage.tsx / SignUpPage.tsx
+       OnboardingQuiz.tsx         → travel preference quiz
+       TouristDashboard.tsx       → explore + bookings
+       ItineraryBuilder.tsx       → multi-day trip planner
+       DestinationDetailPage.tsx
+       BusinessDashboard.tsx      → earnings + listings
+       BusinessListingsPage.tsx
+       BusinessBookingsPage.tsx
+       BusinessEarningsPage.tsx
+       BusinessReviewsPage.tsx
+       BusinessSettingsPage.tsx
+       BusinessMessagesPage.tsx   → business chat inbox
+       BusinessPromotionsPage.tsx → manage promotions
+       TouristMessagesPage.tsx    → tourist chat inbox
+       ChatPage.tsx               → full chat interface
+       VideoFeedPage.tsx          → TikTok-style Reels feed
+       AdminDashboard.tsx
+       AdminPromotionsPage.tsx    → admin promotion management
+   
+    hooks/
+       useLang.ts    → EN / ID language state
+   
+    lib/
+       api.ts        → all REST API calls with auth
+       saved.ts      → localStorage saved destinations
+   
+    App.tsx           → all routes + role-based guards
 
-## 🏪 Local Business
+  public/
+    logo/             → logo-64/128/256.png (transparent)
+    img/              → destination images
+    avatar/           → user avatar images
 
-* Create business listings
-* Manage business information
-* Manage bookings
-* Manage media
-* Communicate with tourists
-* Manage tourism-related content
-
-## 🛡️ Administrator
-
-* Manage users
-* Manage businesses
-* Approve business listings
-* Manage platform content
-* Monitor bookings
-* Access protected statistics
-* Perform administrative operations
-
----
-
-# 🛡️ Production Security Architecture
-
-Security is a core part of the GoSulawesi architecture.
-
-### 🔐 Authentication
-
-Authentication uses signed tokens and secure cookie-based session handling.
-
-* HMAC-SHA256 signed tokens
-* `HttpOnly` cookies
-* `Secure` cookie protection
-* `SameSite` cookie policy
-* Logout/session invalidation
-
-### 🔑 Role-Based Authorization
-
-Sensitive operations are protected by server-side authorization.
-
-Supported roles:
-
-```text
-tourist
-local
-admin
+  Foto/              → app screenshots (desktop + mobile)
+ docker-compose.yml
+ package.json
+ vite.config.ts
 ```
 
-Frontend role guards are treated as an interface-level protection layer; actual authorization is enforced by the backend API.
+---
 
-### 🗄️ SQL Injection Protection
+## Database Schema
 
-Database queries use PHP PDO prepared statements with parameter binding.
+```sql
+users           → id · name · email · password · role · avatar
+businesses      → id · user_id · business_name · type · city · status
+destinations    → id · name · city · category · price · rating · lat/lng
+bookings        → id · user_id · destination_id · business_id · status · price
+reviews         → id · user_id · destination_id · business_id · rating · comment
+videos          → id · user_id · video_url · thumbnail · caption · sound_id · shares · views
+video_sounds    → id · title · artist · audio_url · duration_sec · category · usage_count
+video_likes     → id · video_id · user_id
+video_saves     → id · video_id · user_id
+video_comments  → id · video_id · user_id · comment_text
+video_daily_stats → id · video_id · stat_date · views · likes · comments · shares
+conversations   → id · tourist_id · business_id · status
+messages        → id · conversation_id · sender_id · message_text
+promotions      → id · business_id · title · description · discount · start/end_date
+cancellation_policies  → id · business_id · deadline_hours · refund_before/after · requires_approval · notes
+cancellation_requests  → id · booking_id · user_id · reason · status · refund_percent · refund_amount · handled_by · handler_notes
+```
 
-### 🌐 CORS Protection
+**Cancellation Request Status:** `pending` → `approved` / `rejected` / `auto`
 
-Cross-origin requests are restricted through an origin allowlist rather than unrestricted wildcard access.
-
-### 🚦 Rate Limiting
-
-Sensitive authentication routes include rate-limiting protection against repeated failed login attempts.
-
-### 📁 Secure File Handling
-
-Uploaded files are validated using:
-
-* MIME-type verification
-* File-size restrictions
-* Extension validation
-* Server-generated filenames
-
-### 🔒 Privacy & Business Logic
-
-Additional protections include:
-
-* Ownership verification
-* Booking authorization
-* Review eligibility checks
-* Protected administrative statistics
-* Restricted private user/business information
-* Production-safe error responses
+**User Roles:** `admin` · `tourist` · `local`  
+**Business Status:** `pending` → `approved` / `rejected`  
+**Booking Status:** `pending` → `confirmed` → `completed` / `cancelled`
 
 ---
 
-# 🧪 White-Hat Security Audit
+## Quick Start
 
-GoSulawesi underwent a **White-Hat security audit** covering authentication, authorization, SQL injection, XSS, file uploads, CORS, IDOR, privacy, and business-logic security.
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [Node.js 20+](https://nodejs.org)
+- [Python 3.x](https://www.python.org) *(optional, for logo tools)*
 
-The audit identified **15 findings**, which were subsequently remediated according to the project's security audit and verification records.
+### 1 — Start Backend (Docker)
+```bash
+docker-compose up -d --build
+```
+| Service | URL |
+|---|---|
+| PHP REST API | http://localhost:8082 |
+| phpMyAdmin | http://localhost:8081 |
 
-| Severity    | Findings |    Status    |
-| :---------- | :------: | :----------: |
-| 🔴 Critical |     3    | ✅ Remediated |
-| 🟠 High     |     4    | ✅ Remediated |
-| 🟡 Medium   |     5    | ✅ Remediated |
-| 🟢 Low      |     3    | ✅ Remediated |
-
-### Key Remediation Areas
-
-The security remediation process included:
-
-* Server-side authorization for business status changes
-* Environment-based authentication secrets
-* Migration from browser storage to `HttpOnly` authentication cookies
-* Private business-owner information protection
-* Booking-status authorization
-* Production-safe handling of demo accounts
-* CORS origin allowlisting
-* Backend role enforcement
-* Login rate limiting
-* Completed-booking verification for reviews
-* Production-safe database error handling
-* Removal of duplicate backend files
-* Protected platform statistics
-* Follow-list privacy controls
-* Removal of unused frontend template code
-
-### Security Verification
-
-Additional checks included:
-
-* SQL Injection
-* File Upload Security
-* Password Hashing
-* XSS Protection
-* Open Redirects
-* Token Exposure in URLs
-* Chat Access Control
-* Resource Ownership Verification
-* Booking Authorization
-
-> **Security principle:** Security-sensitive operations are enforced at the backend/API layer and are not dependent solely on frontend restrictions.
+### 2 — Start Frontend
+```bash
+npm install
+npm run dev
+```
+App runs at → **http://localhost:5173**
 
 ---
 
-# 🧰 Technology Stack
+## User Roles & Access Architecture
 
-| Category         | Technology                   |
-| :--------------- | :--------------------------- |
-| Frontend         | React 19                     |
-| Language         | TypeScript                   |
-| Build Tool       | Vite                         |
-| Styling          | TailwindCSS 4                |
-| Backend          | PHP 8                        |
-| API              | REST                         |
-| Database         | MySQL 8                      |
-| Database Access  | PDO                          |
-| Web Server       | Apache 2.4                   |
-| Containerization | Docker / Docker Compose      |
-| Authentication   | HMAC-SHA256 + Secure Cookies |
-| Authorization    | Server-side RBAC             |
-| Version Control  | Git / GitHub                 |
-| Production       | Hostinger VPS                |
+Access levels are partitioned into three dedicated roles:
+- **Admin**: Full platform governance, guide accreditation, platform reports, and destination management.
+- **Local Business**: Provider dashboard, listings management, booking handling, promotions, and earnings.
+- **Tourist**: Exploration, booking tours, submitting verified reviews, and building custom itineraries.
+
+> [!NOTE]
+> For development testing, mock seed data can be populated via `php database/seed.php`. In production environments, all accounts are registered securely via the `/signup` onboarding workflow with unique salted password hashes.
 
 ---
 
-# 🚀 Development Setup
+## API Endpoints
 
-## Requirements
+```
+POST   /api/auth/login
+POST   /api/auth/register
+GET    /api/auth/me
 
-* Docker
-* Docker Compose
-* Git
+GET    /api/destinations
+POST   /api/destinations        [admin]
+PUT    /api/destinations/:id    [admin]
+DELETE /api/destinations/:id    [admin]
 
-### Clone the Project
+GET    /api/businesses
+POST   /api/businesses          [local]
+PUT    /api/businesses/:id      [local/admin]
+
+GET    /api/bookings
+POST   /api/bookings            [tourist]
+PUT    /api/bookings/:id/update   [tourist/local/admin]
+DELETE /api/bookings/:id/delete   [tourist/local/admin]
+
+GET    /api/cancellations/policy?business_id=:id
+POST   /api/cancellations/policy          [local] — create/update policy
+GET    /api/cancellations/requests        [tourist sees own · local sees business · admin sees all]
+POST   /api/cancellations/requests        [tourist] — create cancellation request
+PUT    /api/cancellations/requests/:id    [local/admin] — approve/reject request
+
+GET    /api/reviews
+POST   /api/reviews             [tourist]
+
+GET    /api/users               [admin]
+PUT    /api/users/:id/update
+POST   /api/users/:id/avatar
+
+GET    /api/stats               (public — live counters)
+GET    /api/dashboard           [admin]
+
+GET    /api/videos              (public feed · mine · saved)
+POST   /api/videos              [tourist/local] — upload with sound_id
+GET    /api/videos/:id          — single video + sound info
+DELETE /api/videos/:id          [owner]
+POST   /api/videos/:id/like     — toggle like
+POST   /api/videos/:id/save     — toggle save
+POST   /api/videos/:id/view     — count view
+POST   /api/videos/:id/share    — count share
+GET    /api/videos/:id/comments — list comments
+POST   /api/videos/:id/comments — add comment
+GET    /api/videos/sounds       — list sound library
+GET    /api/videos/stats        — analytics (mine · single video)
+
+GET    /api/chat/:conversationId  — list messages
+POST   /api/chat/:conversationId  — send message
+DELETE /api/chat/:conversationId  — delete message
+PUT    /api/chat/:conversationId  — close conversation
+
+GET    /api/promotions           — list promotions
+POST   /api/promotions           [local] — create promotion
+PUT    /api/promotions/:id       [local/admin] — update
+DELETE /api/promotions/:id       [local/admin] — delete
+```
+
+---
+
+## Key Features
+
+### Reels — TikTok-style Video Feed (Premium)
+- Full-screen vertical video feed with scroll-snap navigation
+- Upload short clips (MP4/MOV/WebM, max 25MB, 60s) with auto-generated thumbnails
+- **Sound Library** — 8 royalty-free background music tracks (Creative Commons)
+- Sound picker with live audio preview (play/stop, spinning disc, equalizer bars)
+- Background music plays in sync with video in the feed
+- Sound attribution overlay with spinning disc (like TikTok)
+- Like, comment, save, and share videos
+- **Advanced Analytics** — daily stats (views, likes, comments, shares)
+- Analytics dashboard with stat cards, 14-day bar chart, and Top 5 videos leaderboard
+- Desktop layout: centered 450px column with keyboard navigation (arrow up/down)
+
+### For Tourists
+- Personalized destination recommendations via **onboarding quiz**
+- Filter by category: Nature · Culture · Adventure · Village · Coastal
+- **Itinerary Builder** — plan multi-day trips with price estimation
+- Save favorite destinations (localStorage)
+- Book directly and track booking status
+- **Cancellation Requests** — request booking cancellations with automatic refund calculation
+- Leave reviews and ratings
+- **Reels** — watch and upload short travel videos with music
+- **Chat** — real-time messaging with local businesses
+- Bilingual UI (English / Bahasa Indonesia)
+
+### For Local Businesses
+- Create and manage business listings
+- Real-time booking dashboard with revenue charts
+- Manage incoming bookings (confirm / complete / cancel)
+- **Cancellation Requests** — approve or reject tourist cancellation requests with refund calculation
+- **Cancellation Policy Editor** — set deadline hours, refund percentages, and approval requirements
+- View and respond to customer reviews
+- Weekly earnings analytics
+- **Business Hours Editor** — set operating hours
+- **Promotions** — create and manage promotional campaigns
+- **Chat** — real-time messaging with tourists
+
+### For Admins
+- Full platform overview (users · bookings · destinations)
+- Approve or reject pending businesses
+- Manage all users, listings, and bookings
+- Weekly booking statistics chart
+- **Promotions Management** — oversee all promotional campaigns
+
+---
+
+## 🛡️ Security Hardening & Compliance
+
+GoSulawesi is engineered with defense-in-depth principles adhering to the **OWASP Top 10** standards:
+
+### Applied Defensive Controls
+
+| Security Domain | Implemented Control | Status |
+| :--- | :--- | :---: |
+| **Authentication & Session** | Signed tokens via HMAC-SHA256 with 7-day expiration, delivered strictly via `HttpOnly`, `SameSite=Lax`, and `Secure` cookies. Zero exposure to client-side JavaScript. | ✅ **Hardened** |
+| **Access Control (RBAC)** | Strict server-side role verification (`tourist`, `local`, `admin`) on every mutation endpoint. | ✅ **Hardened** |
+| **Injection Defense** | 100% parameter-bound queries via PHP PDO (`PDO::ATTR_EMULATE_PREPARES => false`) with `utf8mb4` charset. | ✅ **Hardened** |
+| **API & Cross-Origin** | Origin-whitelisted CORS policy matching authorized client domains only. | ✅ **Hardened** |
+| **Brute-Force Mitigation** | IP and account-based rate limiting on sensitive authentication routes. | ✅ **Hardened** |
+| **Secure File Handling** | MIME-type validation via `finfo`, strict file extension checks, randomized server-side filenames, and script execution prevention in upload paths. | ✅ **Hardened** |
+| **Data Protection** | Database connection errors filtered server-side (`error_log`); environment secrets stored in server-level `.env.php` outside the public web root. | ✅ **Hardened** |
+
+## Build for Production
 
 ```bash
-git clone https://github.com/Moh-Shafi/Go-sulawesi.git
-cd Go-sulawesi
+npm run build
 ```
-
-### Start Development Environment
-
-```bash
-docker compose up -d
-```
-
-### Local Services
-
-```text
-Frontend
-http://localhost:5173
-
-Backend API
-http://localhost:8082
-```
-
-For detailed frontend and backend setup instructions, see their respective repositories.
-
----
-
-# 🌐 Production Deployment
-
-GoSulawesi has been deployed using a **Hostinger VPS** environment.
-
-```text
-                    Internet
-                       │
-                       ▼
-                Hostinger VPS
-                       │
-             ┌─────────┴─────────┐
-             │                   │
-             ▼                   ▼
-        React Frontend       PHP REST API
-                                 │
-                                 ▼
-                             MySQL 8
-```
-
-The production environment uses:
-
-* VPS hosting
-* Apache
-* PHP
-* MySQL
-* Environment-based secrets
-* Git/GitHub workflow
-* Secure API communication
-
----
-
-# 🗺️ Roadmap
-
-### 💳 Payment Integration
-
-Planned payment integrations include:
-
-* Midtrans
-* Xendit
-
-These integrations are intended to support secure booking payments and transaction processing.
-
-### 📍 Maps & Location
-
-Planned mapping integrations include:
-
-* Google Maps API
-* Leaflet
-* OpenStreetMap
-
-Potential use cases:
-
-* Destination maps
-* Business locations
-* Travel planning
-* Location-based discovery
-
-### 📱 Mobile Application
-
-A Flutter mobile application is planned to consume the same REST API.
-
-```text
-                  GoSulawesi API
-                        │
-              ┌─────────┴─────────┐
-              ▼                   ▼
-        React Web App        Flutter Mobile
-```
-
----
-
-# 🌴 Project Background
-
-GoSulawesi was developed as a tourism marketplace concept focused on promoting local destinations and businesses across Sulawesi.
-
-The platform aims to make local tourism more accessible by connecting travelers directly with local businesses and experiences.
-
-The project combines:
-
-* Tourism discovery
-* Local business digitization
-* Online booking
-* Communication
-* Reviews
-* Travel planning
-* Secure API infrastructure
-
----
-
-# 👨‍💻 Developer
-
-## Abdul Shafi Afzal Ehrari
-
-Full-Stack Software Developer & Informatics Student
-
-* GitHub: [Moh-Shafi](https://github.com/Moh-Shafi)
-* LinkedIn: [Abdul Shafi Afzal Ehrari](https://linkedin.com/in/shafi-afzalehrari)
+Output → `dist/` (static files, ready for deployment)
 
 ---
 
 <div align="center">
 
-### 🌴 GoSulawesi
+Made with  for South Sulawesi, Indonesia
 
-**Connecting travelers with local experiences across Sulawesi, Indonesia 🇮🇩**
-
-Built with ❤️ using React, TypeScript, PHP, MySQL, Docker, and modern web technologies.
+**GoSulawesi** · *Hidden Experiences*
 
 </div>
+
+
