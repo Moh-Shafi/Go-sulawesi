@@ -20,6 +20,24 @@ A modern, bilingual (EN/ID) full-stack travel platform connecting tourists with 
 
 ---
 
+## About GoSulawesi
+
+GoSulawesi is a bilingual (EN/ID) full-stack travel platform that connects tourists with authentic hidden destinations and local businesses across Sulawesi, Indonesia.
+
+### The Problem
+Sulawesi is rich in nature, culture, and authentic local experiences. However, many of these destinations and small local businesses remain largely invisible. They are hard to find on Google and major travel platforms, and most local owners lack the tools or knowledge to market themselves effectively. As a result, a clear gap exists between tourists and local communities — travelers usually only visit well-known spots, while genuine hidden experiences stay undiscovered.
+
+### Our Solution
+GoSulawesi helps local business owners promote and manage their offerings, while enabling travelers to discover new and meaningful experiences. Key features include a TikTok-style Reels video feed, direct chat between tourists and businesses, booking management, and a smart cancellation system with automatic refund calculation.
+
+### How We Differ
+Large platforms like Google, Booking.com, and TripAdvisor mainly focus on popular destinations and established businesses. They often overlook small local operators and less-known experiences. GoSulawesi takes a different approach by prioritizing "hidden experiences" and empowering local businesses, making authentic offerings that are missing from mainstream platforms easy to discover and book.
+
+### Potential Impact
+By increasing the visibility of small local businesses, GoSulawesi can support the local economy and create new opportunities for communities in Sulawesi. At the same time, it gives tourists access to more authentic and diverse experiences beyond the usual tourist routes.
+
+---
+
 ## Screenshots — Desktop
 
 <table>
