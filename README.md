@@ -379,18 +379,18 @@ DELETE /api/promotions/:id       [local/admin] — delete
 
 ---
 
-## 🌟 Complete Feature Suite & Capabilities
+## Complete Feature Suite & Capabilities
 
 GoSulawesi provides an end-to-end digital ecosystem connecting travelers, local tourism operators, and platform administrators. Below is a detailed breakdown of the complete feature set:
 
-### 1. 🗺️ Destination Discovery & Explorer
+### 1. Destination Discovery & Explorer
 * **Interactive Destination Catalog**: Browse Sulawesi's hidden beaches, dive sites, cultural landmarks, and mountain trails.
 * **Smart Filtering & Search**: Filter destinations by category (*Nature*, *Culture*, *Adventure*, *Village*, *Coastal*) and location across Sulawesi.
 * **Rich Destination Profiles**: High-resolution imagery, geographical coordinates, entrance fee pricing, average ratings, and localized descriptions.
 * **Favorites & Bookmarks**: Save destinations to a personal wishlist synced locally for quick access.
 * **Bilingual Interface**: Seamless one-click switching between English and Bahasa Indonesia across all views.
 
-### 2. 🎬 Reels Video Feed (TikTok-Style Social Travel)
+### 2. Reels Video Feed (TikTok-Style Social Travel)
 * **Vertical Video Feed**: Immersive, full-screen vertical feed with scroll-snap navigation and keyboard controls (Arrow Up/Down).
 * **Built-in Sound Library**: 8 curated, royalty-free Indonesian cultural and modern background music tracks.
 * **Interactive Audio Player**: Sound preview with spinning vinyl disc animation and synchronized audio playback.
@@ -398,48 +398,48 @@ GoSulawesi provides an end-to-end digital ecosystem connecting travelers, local 
 * **Video Creator Studio**: Video upload modal with live sound picker, duration check, and thumbnail generation.
 * **Creator Analytics**: Dedicated analytics dashboard displaying 14-day performance trends, daily views, likes, comments, shares, and a top-performing video leaderboard.
 
-### 3. 📅 Smart Itinerary Builder
+### 3. Smart Itinerary Builder
 * **Multi-Day Trip Planning**: Curate custom travel itineraries day-by-day.
 * **Automated Cost Estimation**: Live calculation of total trip estimated costs based on destination entry fees and activities.
 * **Custom Route Scheduling**: Organize stops chronologically to optimize travel times across Sulawesi's provinces.
 
-### 4. 💬 Real-Time Messaging & In-App Chat
+### 4. Real-Time Messaging & In-App Chat
 * **Direct Communication**: Instant messaging connecting tourists with local business owners and guides before or after booking.
 * **Dedicated Inboxes**: Customized conversation list for Tourists (`/tourist/messages`) and Businesses (`/business/messages`).
 * **Floating Chat Widget**: Quick-access floating widget on listing pages to instantly initiate inquiries.
 * **Conversation Management**: Message history, unread badges, and conversation closure controls.
 
-### 5. 🏪 Local Business & Guide Directory
+### 5. Local Business & Guide Directory
 * **Provider Listings**: Local operators can list guided tours, dive excursions, homestays, vehicle rentals, and culinary experiences.
 * **Business Verification**: Strict accreditation workflow requiring admin approval before listings go live.
 * **Operating Hours Editor**: Interactive visual weekly schedule editor to set daily opening and closing hours.
 * **Earnings & Performance Dashboard**: Visual revenue charts, total completed bookings, and payout tracking.
 
-### 6. 🎟️ End-to-End Booking & Reservation Engine
+### 6. End-to-End Booking & Reservation Engine
 * **Instant Booking Workflow**: Select dates, number of guests, add custom notes, and book directly.
 * **Booking State Machine**: Full lifecycle tracking (`pending` → `confirmed` → `completed` / `cancelled`).
 * **Role-Restricted Permissions**: Strict state protection ensuring only authorized businesses and admins can confirm or finalize reservations.
 
-### 7. 🛡️ Dynamic Cancellation & Refund Management
+### 7. Dynamic Cancellation & Refund Management
 * **Flexible Cancellation Policies**: Business owners can customize cancellation rules (e.g. deadline hours before trip, refund percentage before/after deadline).
 * **Automated Refund Calculation**: Dynamic computation of eligible refund amounts based on policy thresholds and request timestamp.
 * **Transparent Dispute Workflow**: Tourist cancellation request submission with reason tracking, business/admin approval queue, and automated resolution logging.
 
-### 8. 🏷️ Promotional Campaigns & Discounts Engine
+### 8. Promotional Campaigns & Discounts Engine
 * **Discount Management**: Businesses can launch seasonal promotions, flash sales, and percentage-based discounts.
 * **Campaign Scheduling**: Set start and end dates with automated promotional badge displays on listings.
 * **Platform-Wide Governance**: Administrators can monitor, review, and manage promotional campaigns across all merchants.
 
-### 9. ⭐ Verified Reviews & Community Feedback
+### 9. Verified Reviews & Community Feedback
 * **Booking-Verified Reviews**: Only tourists with completed bookings can leave ratings and feedback, eliminating spam.
 * **Multi-Criteria Scoring**: 1 to 5-star ratings accompanied by detailed written traveler experiences.
 * **Business Responses**: Local businesses can publicly reply to reviews to maintain customer trust and engagement.
 
-### 10. 🎯 Personalized Onboarding Travel Quiz
+### 10. Personalized Onboarding Travel Quiz
 * **Preference Discovery**: Interactive onboarding quiz assessing travel style (Nature, Adventure, Culture, Relaxation), trip length, and budget.
 * **Personalized Recommendations**: Automatically matches traveler profiles with the best hidden gems and destinations across Sulawesi.
 
-### 11. 🛡️ Governance & Administrative Control Center
+### 11. Governance & Administrative Control Center
 * **Executive Metrics Dashboard**: Real-time KPI counters (active users, confirmed bookings, platform GMV, active listings).
 * **Accreditation Queue**: Review and verify business registrations and guide licenses.
 * **User & Content Moderation**: Role management, user status toggles, avatar moderation, and listing oversight.
@@ -447,7 +447,7 @@ GoSulawesi provides an end-to-end digital ecosystem connecting travelers, local 
 
 ---
 
-## 🛡️ Security Hardening & Compliance
+## Security Hardening & Compliance
 
 GoSulawesi is engineered with defense-in-depth principles adhering to the **OWASP Top 10** standards:
 
@@ -455,13 +455,13 @@ GoSulawesi is engineered with defense-in-depth principles adhering to the **OWAS
 
 | Security Domain | Implemented Control | Status |
 | :--- | :--- | :---: |
-| **Authentication & Session** | Signed tokens via HMAC-SHA256 with 7-day expiration, delivered strictly via `HttpOnly`, `SameSite=Lax`, and `Secure` cookies. Zero exposure to client-side JavaScript. | ✅ **Hardened** |
-| **Access Control (RBAC)** | Strict server-side role verification (`tourist`, `local`, `admin`) on every mutation endpoint. | ✅ **Hardened** |
-| **Injection Defense** | 100% parameter-bound queries via PHP PDO (`PDO::ATTR_EMULATE_PREPARES => false`) with `utf8mb4` charset. | ✅ **Hardened** |
-| **API & Cross-Origin** | Origin-whitelisted CORS policy matching authorized client domains only. | ✅ **Hardened** |
-| **Brute-Force Mitigation** | IP and account-based rate limiting on sensitive authentication routes. | ✅ **Hardened** |
-| **Secure File Handling** | MIME-type validation via `finfo`, strict file extension checks, randomized server-side filenames, and script execution prevention in upload paths. | ✅ **Hardened** |
-| **Data Protection** | Database connection errors filtered server-side (`error_log`); environment secrets stored in server-level `.env.php` outside the public web root. | ✅ **Hardened** |
+| **Authentication & Session** | Signed tokens via HMAC-SHA256 with 7-day expiration, delivered strictly via `HttpOnly`, `SameSite=Lax`, and `Secure` cookies. Zero exposure to client-side JavaScript. | **Hardened** |
+| **Access Control (RBAC)** | Strict server-side role verification (`tourist`, `local`, `admin`) on every mutation endpoint. | **Hardened** |
+| **Injection Defense** | 100% parameter-bound queries via PHP PDO (`PDO::ATTR_EMULATE_PREPARES => false`) with `utf8mb4` charset. | **Hardened** |
+| **API & Cross-Origin** | Origin-whitelisted CORS policy matching authorized client domains only. | **Hardened** |
+| **Brute-Force Mitigation** | IP and account-based rate limiting on sensitive authentication routes. | **Hardened** |
+| **Secure File Handling** | MIME-type validation via `finfo`, strict file extension checks, randomized server-side filenames, and script execution prevention in upload paths. | **Hardened** |
+| **Data Protection** | Database connection errors filtered server-side (`error_log`); environment secrets stored in server-level `.env.php` outside the public web root. | **Hardened** |
 
 ## Build for Production
 
